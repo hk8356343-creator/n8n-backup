@@ -1,0 +1,54 @@
+{
+  "updatedAt": "2026-02-27T13:57:54.000Z",
+  "createdAt": "2026-02-27T13:46:48.888Z",
+  "id": "M4bHCa32wmJjjxCt",
+  "name": "My workflow 17",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        -112
+      ],
+      "id": "486d85b8-777e-46f8-956f-1fa5fc66e3a8",
+      "name": "WhatsApp Trigger",
+      "webhookId": "3c951920-526c-4553-97c6-7aacceb55dc1",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "Qh47jeRW0toEl7wp",
+          "name": "WhatsApp OAuth account"
+        }
+      }
+    }
+  ],
+  "connections": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "e83b4f9f-fa57-4897-afca-691f08973955",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-02-27T13:46:48.897Z",
+      "createdAt": "2026-02-27T13:46:48.897Z",
+      "role": "workflow:owner",
+      "workflowId": "M4bHCa32wmJjjxCt",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "tags": []
+}
