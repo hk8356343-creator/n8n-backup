@@ -1,0 +1,1947 @@
+{
+  "updatedAt": "2026-01-30T14:55:50.000Z",
+  "createdAt": "2025-11-24T13:26:05.544Z",
+  "id": "8lX25VAZCPzWioI5",
+  "name": "Facebook Messanger bot  with Human Handoff.(Export Pi v.12)",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "79669e99-7125-402d-9d5f-dc9c2c7d0581",
+              "leftValue": "={{ $json.query['hub.mode'] }}",
+              "rightValue": "subscribe",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "1a59687c-5b4d-4169-b527-ef9ff7604099",
+              "leftValue": "={{ $json.query['hub.verify_token'] }}",
+              "rightValue": "token",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2672,
+        816
+      ],
+      "id": "d8384c51-c1b3-4444-9819-d8b6e35b29e9",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -2448,
+        720
+      ],
+      "id": "ac5ff1ea-6530-459a-8009-191d853d44cc",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 404
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -2448,
+        912
+      ],
+      "id": "eb299008-0ef5-444c-8be6-b67c49d83cee",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f5cac431-cd93-4a6a-9981-5e4077fc735f",
+              "name": "sender_id",
+              "value": "={{ $json.body.entry[0].messaging[0].sender.id }}",
+              "type": "string"
+            },
+            {
+              "id": "b60d6abc-74be-4299-86e7-b024e1182d72",
+              "name": "receiver_id",
+              "value": "={{ $json.body.entry[0].messaging[0].recipient.id }}",
+              "type": "string"
+            },
+            {
+              "id": "f71b869c-ddb6-4a6d-9012-64887a2a355c",
+              "name": "message",
+              "value": "={{ $json.body.entry[0].messaging[0].message.text }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "message_id",
+              "value": "={{ $json.body.entry[0].messaging[0].message.mid }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2672,
+        1104
+      ],
+      "id": "3bfcaff8-9836-4183-83c8-5c8045139f73",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are Export Pi’s customer support AI assistant.\n\nYou will receive:\n1. A customer question.\n2. A list of FAQ rows from Google Sheets.\n\nYour job:\n- Find the most similar question from the sheet \"FAQ\" (even if wording is different).\n- Consider spelling mistakes, Banglish, short questions, incomplete text.\n- If similarity is 60% or higher → return the sheet answer.\n- If no similar question → respond with \"No matching FAQ found\".\n- Only output the final answer. No explanation.\n\nRule to Follow:\n1. User messages may be in English, Bangla, or Banglish.\n2. If the message is in Bangla or Banglish, translate it to English first before doing anything else.\n3. Clean and normalize the English message.\n4. Send the cleaned message to the FAQ tool as a query.\n5. If FAQ returns an answer, use that answer exactly.\n6. If FAQ returns no answer, reply: \"I’m not fully sure about this. Let me connect you with a human assistant.\"\n7. If the message is only a greeting or small talk, reply normally and DO NOT use FAQ.\n8. Do not answer questions that are not found in the FAQ tool.\n9. Do not discuss or answer anything outside of the Query.\n\nAlways return EXACTLY this JSON format:\n{\n  \"finalAnswer\": \"string\",\n  \"need_human\": true or false\n}\n\nLogic:\n- If FAQ returns an answer → need_human = false\n- If FAQ finds no answer → need_human = true\n- If message is greeting → need_human = false\n",
+          "returnIntermediateSteps": true
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -880,
+        720
+      ],
+      "id": "d8b79931-44b4-4ecf-bac6-af93fa88a218",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"reply\": \"Your message to the customer\",\n  \"needs_human\": false\n}",
+        "autoFix": true
+      },
+      "id": "41294cb9-1094-40dd-8d2e-b97b369046b3",
+      "name": "JSON Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -624,
+        944
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "condition-1",
+                    "leftValue": "={{ $json.body.entry[0].messaging[0].message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "any",
+                      "operation": "exists",
+                      "name": "filter.operator.exists"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text Message"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "condition-2a",
+                    "leftValue": "={{ $json.body.entry[0].messaging[0].message.attachments }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "any",
+                      "operation": "exists",
+                      "name": "filter.operator.exists"
+                    }
+                  },
+                  {
+                    "id": "condition-2b",
+                    "leftValue": "={{ $json.body.entry[0].messaging[0].message.attachments[0].type }}",
+                    "rightValue": "audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Voice/Image"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "condition-3a",
+                    "leftValue": "={{ $json.body.entry[0].messaging[0].message.attachments }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "any",
+                      "operation": "exists",
+                      "name": "filter.operator.exists"
+                    }
+                  },
+                  {
+                    "id": "condition-3b",
+                    "leftValue": "={{ $json.body.entry[0].messaging[0].message.attachments[0].type }}",
+                    "rightValue": "image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Voice/Image"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "dd1f5899-523e-4ab3-9d7a-b2d2232df8ce",
+      "name": "Check Message Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -2224,
+        800
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ 'fb_msg_' + $('Edit Fields').item.json.body.entry[0].messaging[0].message.mid }}",
+        "value": "processed",
+        "expire": true,
+        "ttl": 86400
+      },
+      "id": "77fe75d3-df5c-4a1f-8d7d-695fc0b9cd8a",
+      "name": "Mark Message as Processed",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -2896,
+        1712
+      ],
+      "credentials": {
+        "redis": {
+          "id": "sAd5E9rBwbyLoPEu",
+          "name": "Redis account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "rule1-condition1",
+                    "leftValue": "={{ $json.output.needs_human }}",
+                    "rightValue": false,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "false",
+                      "name": "filter.operator.false"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Send Reply"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "rule2-condition1",
+                    "leftValue": "={{ $json.output.needs_human }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "true",
+                      "name": "filter.operator.true"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Notify Human"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6879d111-63af-4e37-9936-6771d6c51f3f",
+      "name": "Route Based on needs_human",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -256,
+        720
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $('Edit Fields').item.json.body.entry[0].messaging[0].recipient.id }}/messages",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "=EAAWb4dX711EBQoBnwUCQ5g1SVgN1N2tP1Ou46evfBUC3sZBDiXyXhi4ILRaLGYQOsgj0zl0UzXFA2xyHDLxbY7XmaVzCaSXxoGWAT2ARzQSYQ3PX1Lo23XZBB6FrxydHphZBUnAZBCdYEmvNl1WLMHWm8Pt7kze7sw08tDpDZAqWp9fdJq22mNZCtlFasMraikb3A58fE71D3u0uQ9HGPiYUrIOgZDZD"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"{{ $('Edit Fields').item.json.sender_id }}\"\n  },\n  \"message\": {\n    \"text\": \"{{ $json.output.reply }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "49dcd6ae-be89-455a-90ec-adf43ba25f93",
+      "name": "Send Reply to Messenger",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -32,
+        624
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "testnnworkflow13@gmail.com",
+        "subject": "Facebook Messenger: Voice/Image Message Received",
+        "message": "=A customer sent a voice or image message on Facebook Messenger.\n\nSender ID: {{ $('Edit Fields').item.json.sender_id }}\nMessage Type: {{ $('Webhook').item.json.body.entry[0].messaging[0].message.attachments[0].type }} ,\n\n\nPlease respond to this customer manually via Facebook Messenger.",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "918b5e9f-fc3c-4e83-afc3-da0230bcc5ce",
+      "name": "Notify Human - Voice/Image",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -1776,
+        1008
+      ],
+      "webhookId": "33af3ebe-d47e-4fd6-8c51-c251376fd523",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SN79AzLmxYdb0jSR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "testnnworkflow13@gmail.com",
+        "subject": "Facebook Messenger: AI Escalation Required",
+        "message": "=The AI agent has escalated a customer message for human review.\n\nCustomer Message: {{ $('Edit Fields').item.json.message }},\nAI Reply Sent: {{ $('Route Based on needs_human').item.json.output.reply }}\n\nPlease follow up with this customer on Facebook Messenger.",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "id": "abedce6a-8e7c-4191-b835-4383e73662d3",
+      "name": "Notify Human - AI Escalation",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        432,
+        816
+      ],
+      "webhookId": "8b39afaf-9340-4e15-8735-a2caaebda279",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SN79AzLmxYdb0jSR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "26557e1b-cfd2-4e3c-a509-faf467686280",
+      "name": "Respond OK - Sent Reply",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        208,
+        624
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "72dea0ac-e087-435f-ae55-12e8f36848ba",
+      "name": "Respond OK - Notified Human",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        656,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8fb8fbf1-8743-4a61-aae3-8c2c54902fbb",
+              "name": "message",
+              "value": "={{ $json.body.entry[0].messaging[0].message.text }}",
+              "type": "string"
+            },
+            {
+              "id": "bf3bf214-c2a0-468e-bfd5-970fcf6f627b",
+              "name": "sender_id",
+              "value": "={{ $json.body.entry[0].messaging[0].sender.id }}",
+              "type": "string"
+            },
+            {
+              "id": "93f435ce-96a9-4bbc-9a67-2cc3ae240246",
+              "name": "reciever_id",
+              "value": "={{ $json.body.entry[0].messaging[0].recipient.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2000,
+        624
+      ],
+      "id": "1c18b78a-215e-416b-975d-d394c96cb7e6",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Filter Customer Messages').item.json.sender_id }}",
+        "contextWindowLength": 50
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -880,
+        944
+      ],
+      "id": "9a4b9130-8647-45c6-83b6-eeafff398e2b",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Search the FAQ database for answers to customer questions. Use this tool for ANY question about products, shipping, returns, payments, or company policies. The tool returns all FAQ entries - review them carefully to find relevant answers.",
+        "documentId": {
+          "__rl": true,
+          "value": "1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4",
+          "mode": "list",
+          "cachedResultName": "FAQ for Export-Pi",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "FAQ's",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Question",
+              "lookupValue": "={{ $json.message }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        -752,
+        944
+      ],
+      "id": "73dce956-3de8-4e9d-b91a-0eb7979398c5",
+      "name": "FAQ",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json.sender_id }}",
+              "rightValue": "={{ $json.receiver_id }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "0d67d037-ba88-4cbe-b2ae-d16f7ccbd418",
+      "name": "Filter Customer Messages",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1776,
+        624
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "4e4a5150-cb19-49e2-b1b8-2bef5e8a7adf",
+      "name": "Respond OK - Ignored",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -1552,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg",
+          "mode": "list",
+          "cachedResultName": "users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "User_Id",
+              "lookupValue": "={{ $json.sender_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "325fdf26-67c9-4ad9-aee5-999e3488e0aa",
+      "name": "Check AI Block Status",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1552,
+        624
+      ],
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9b38725e-be6b-479f-a86a-a4de996664ef",
+              "leftValue": "={{ $json.User_Id }}",
+              "rightValue": "={{ $('Edit Fields1').item.json.sender_id }}",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "00f63059-c38e-4208-bf3e-c4e4a2b345da",
+      "name": "Check If AI Blocked",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1328,
+        624
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "7362e191-ee6c-41ae-a188-aa12fceabd2a",
+      "name": "Respond OK - AI Blocked",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -1104,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg",
+          "mode": "list",
+          "cachedResultName": "users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Agent": "Bot",
+            "User_Id": "={{ $json.recipient_id }}",
+            "Human_mode": "True",
+            "Block_until": "={{ $now }}",
+            "Last_message": "={{ $('Edit Fields2').item.json.message }}"
+          },
+          "matchingColumns": [
+            "User_Id"
+          ],
+          "schema": [
+            {
+              "id": "User_Id",
+              "displayName": "User_Id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "User Name",
+              "displayName": "User Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Human_mode",
+              "displayName": "Human_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Block_until",
+              "displayName": "Block_until",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last_message",
+              "displayName": "Last_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Agent",
+              "displayName": "Agent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "ca65e9d1-0765-4a04-832d-08c94fa12896",
+      "name": "Block AI for 24 Hours",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        816
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5558b374-df8c-426f-9f05-e514995724e5",
+              "name": "message",
+              "value": "={{ $('Filter Customer Messages').item.json.message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1104,
+        720
+      ],
+      "id": "98df7023-4fa7-4f4f-bdad-491d4b9b1e12",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg",
+          "mode": "list",
+          "cachedResultName": "users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Agent": "Bot",
+            "User_Id": "={{ $json.sender_id }}",
+            "Human_mode": "True",
+            "Block_until": "={{ $now }}",
+            "Last_message": "=Picture"
+          },
+          "matchingColumns": [
+            "User_Id"
+          ],
+          "schema": [
+            {
+              "id": "User_Id",
+              "displayName": "User_Id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "User Name",
+              "displayName": "User Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Human_mode",
+              "displayName": "Human_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Block_until",
+              "displayName": "Block_until",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last_message",
+              "displayName": "Last_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Agent",
+              "displayName": "Agent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2000,
+        1008
+      ],
+      "id": "90e9c258-bc19-4a75-ad8c-7ba98779f8df",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg",
+          "mode": "list",
+          "cachedResultName": "users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Agent": "Bot",
+            "User_Id": "={{ $json.sender_id }}",
+            "Human_mode": "True",
+            "Block_until": "={{ $now }}",
+            "Last_message": "Voice"
+          },
+          "matchingColumns": [
+            "User_Id"
+          ],
+          "schema": [
+            {
+              "id": "User_Id",
+              "displayName": "User_Id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "User Name",
+              "displayName": "User Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Human_mode",
+              "displayName": "Human_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Block_until",
+              "displayName": "Block_until",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last_message",
+              "displayName": "Last_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Agent",
+              "displayName": "Agent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -2000,
+        816
+      ],
+      "id": "8762bd82-1007-4f17-a3ce-41e230900f0a",
+      "name": "Append or update row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "multipleMethods": true,
+        "path": "fb-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -2896,
+        912
+      ],
+      "id": "6ee7d6f2-33a2-4f0d-8fe5-6bcb15e0e79c",
+      "name": "Webhook",
+      "webhookId": "8808a800-c654-4cdd-9de6-64bf41c7822d"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg",
+          "mode": "list",
+          "cachedResultName": "users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg/edit#gid=0"
+        },
+        "startIndex": "={{ $json.row_number }}"
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1552,
+        1296
+      ],
+      "id": "bc707ac6-f673-4a0e-9d6c-67f8c8b8cfb0",
+      "name": "Delete rows or columns from sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1e560544-449d-4fe7-9346-b25ef4df7a92",
+              "leftValue": "={{ $json.message }}",
+              "rightValue": "/bot on",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "11eb1b73-54e9-4744-806b-110628e029be",
+              "leftValue": "={{ $json.message }}",
+              "rightValue": "bot on",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2000,
+        1392
+      ],
+      "id": "af1fea2b-f42c-43dd-8006-a3d01c25b03f",
+      "name": "Bot On/Off"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg",
+          "mode": "list",
+          "cachedResultName": "users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Agent": "Human",
+            "User_Id": "={{ $('Edit Fields').item.json.receiver_id }}",
+            "Human_mode": "True",
+            "Block_until": "={{ $now }}",
+            "Last_message": "={{ $('Bot On/Off').item.json.message }}"
+          },
+          "matchingColumns": [
+            "User_Id"
+          ],
+          "schema": [
+            {
+              "id": "User_Id",
+              "displayName": "User_Id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "User Name",
+              "displayName": "User Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Human_mode",
+              "displayName": "Human_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Block_until",
+              "displayName": "Block_until",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Last_message",
+              "displayName": "Last_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Agent",
+              "displayName": "Agent",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1552,
+        1488
+      ],
+      "id": "f51b81b7-c909-4221-abbe-dce9e7afd08b",
+      "name": "Append or update row in User Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "2293b125-6199-47e1-b031-cc10cde85f01",
+      "name": "Respond OK - Ignored2",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -1328,
+        1392
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "733dd89d-e10c-4c48-8fba-41192df70c29",
+              "leftValue": "={{ $json.body.entry[0].messaging[0].sender.id }}",
+              "rightValue": "606150112575719",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2448,
+        1104
+      ],
+      "id": "2e9b711e-4c2d-4574-9f39-4f24609ab48c",
+      "name": "Who's message is this?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "851e0dbf-34fc-4d76-8ab2-9d34e5bb751e",
+              "leftValue": "={{ $json.body.entry[0].messaging[0].message.app_id }}",
+              "rightValue": 1578769143551825,
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -2224,
+        1392
+      ],
+      "id": "70e1d5ef-fea7-4842-b7b0-4d14307c13ae",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "ac27ce47-57b8-41bb-8142-3cbe743f0ca2",
+      "name": "Respond OK - Ignored3",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -2000,
+        1200
+      ]
+    },
+    {
+      "parameters": {
+        "model": "moonshotai/kimi-k2-instruct-0905",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -752,
+        1152
+      ],
+      "id": "7eca6d28-529b-42c2-b1f8-a9119b741e12",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "5h1EDdb5qUKmhLT3",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $('Edit Fields').item.json.body.entry[0].messaging[0].recipient.id }}/messages",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "=EAAWb4dX711EBQoBnwUCQ5g1SVgN1N2tP1Ou46evfBUC3sZBDiXyXhi4ILRaLGYQOsgj0zl0UzXFA2xyHDLxbY7XmaVzCaSXxoGWAT2ARzQSYQ3PX1Lo23XZBB6FrxydHphZBUnAZBCdYEmvNl1WLMHWm8Pt7kze7sw08tDpDZAqWp9fdJq22mNZCtlFasMraikb3A58fE71D3u0uQ9HGPiYUrIOgZDZD"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"{{ $('Edit Fields').item.json.sender_id }}\"\n  },\n  \"message\": {\n    \"text\": \"{{ $json.output.reply }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "ccb0c21b-b18c-45f0-aba1-68d18e14118c",
+      "name": "Send Reply to Messenger2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -32,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "a2b3ae53-b7cd-4125-96dc-d43922c3e9f8",
+      "name": "Respond OK - Notified Human1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -1552,
+        1008
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg",
+          "mode": "list",
+          "cachedResultName": "users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "users",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1DQEaSyDcKXPTihpCFQufMWkQPsfXng7rFHWDc3vo1lg/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "User_Id",
+              "lookupValue": "={{ $('Edit Fields').item.json.receiver_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -1776,
+        1296
+      ],
+      "id": "890ffcf9-4bd1-48a0-b56d-f6872ff33a9a",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "JSON Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Who's message is this?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Message Type": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append or update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Route Based on needs_human",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Based on needs_human": {
+      "main": [
+        [
+          {
+            "node": "Send Reply to Messenger",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Reply to Messenger2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Reply to Messenger": {
+      "main": [
+        [
+          {
+            "node": "Respond OK - Sent Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Message as Processed": {
+      "main": [
+        []
+      ]
+    },
+    "Notify Human - Voice/Image": {
+      "main": [
+        [
+          {
+            "node": "Respond OK - Notified Human1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Human - AI Escalation": {
+      "main": [
+        [
+          {
+            "node": "Respond OK - Notified Human",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Filter Customer Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FAQ": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Customer Messages": {
+      "main": [
+        [
+          {
+            "node": "Check AI Block Status",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond OK - Ignored",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check AI Block Status": {
+      "main": [
+        [
+          {
+            "node": "Check If AI Blocked",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If AI Blocked": {
+      "main": [
+        [
+          {
+            "node": "Respond OK - AI Blocked",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Block AI for 24 Hours": {
+      "main": [
+        [
+          {
+            "node": "Notify Human - AI Escalation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Notify Human - Voice/Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Notify Human - Voice/Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete rows or columns from sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond OK - Ignored2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bot On/Off": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append or update row in User Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in User Sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond OK - Ignored2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Who's message is this?": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Message Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Respond OK - Ignored3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Bot On/Off",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "JSON Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Reply to Messenger2": {
+      "main": [
+        [
+          {
+            "node": "Block AI for 24 Hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Delete rows or columns from sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.doshme.me",
+            "user-agent": "facebookexternalua",
+            "content-length": "733",
+            "accept": "*/*",
+            "accept-encoding": "deflate, gzip",
+            "content-type": "application/json",
+            "facebook-api-version": "v24.0",
+            "via": "1.1 Caddy",
+            "x-forwarded-for": "173.252.127.17",
+            "x-forwarded-host": "n8n.doshme.me",
+            "x-forwarded-proto": "https",
+            "x-hub-signature": "sha1=36a32b3c3a5555e3a367c83e3a47d1699e8eb15f",
+            "x-hub-signature-256": "sha256=b19811e25438fd39a9a24d9b9d6a0059711508bcc04a29adf4ac95245c2f37a8"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "object": "page",
+            "entry": [
+              {
+                "time": 1769784688383,
+                "id": "606150112575719",
+                "messaging": [
+                  {
+                    "sender": {
+                      "id": "34063757256542717"
+                    },
+                    "recipient": {
+                      "id": "606150112575719"
+                    },
+                    "timestamp": 1769784666816,
+                    "message": {
+                      "mid": "m_hRBC9NUx5ZRA8V-yUbB5-1z7IC4W3RxenULDa4cj5kK9DhcyvCHEAH_VKo8wCr0YXy5HClkiU_TTAOp3W4rG5w",
+                      "attachments": [
+                        {
+                          "type": "image",
+                          "payload": {
+                            "url": "https://scontent.xx.fbcdn.net/v/t1.15752-9/621154604_1179375120732567_6287470709918790183_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=eb2e90&_nc_ohc=SuGsjvdibSsQ7kNvwGVhgKJ&_nc_oc=AdmMu6U1HlTGJayBIDn4AZHt8r5mNPELaBYPXiug4n6qP7poXNMZbcVK_kDqjdwW3W7mpEDqFPg-g1W3JVsAkbu8&_nc_ad=z-m&_nc_cid=0&_nc_zt=23&_nc_ht=scontent.xx&oh=03_Q7cD4gHCN2FqMdd0fdMib7RWGr9iYKHv_oQe7eFtViVy1guULw&oe=69A44B45"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "webhookUrl": "https://n8n.doshme.me/webhook/fb-webhook",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "versionId": "c814a057-d356-45df-b962-d8c4395de8cb",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2025-11-24T13:26:05.552Z",
+      "createdAt": "2025-11-24T13:26:05.552Z",
+      "role": "workflow:owner",
+      "workflowId": "8lX25VAZCPzWioI5",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "tags": []
+}
