@@ -1,0 +1,1743 @@
+{
+  "updatedAt": "2026-01-27T15:41:45.000Z",
+  "createdAt": "2026-01-04T10:16:30.891Z",
+  "id": "FQNY0mukIioLQ9Nm",
+  "name": "Multi-Bot Chatbot With Chatwoot Dashboard and Live Agent System v.3",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "73dda863-a532-47f4-9de6-07c152412fc3",
+              "name": "account_id",
+              "value": "={{ $json.body.conversation.messages[0] ? $json.body.conversation.messages[0].account_id : $json.body.account.id }}",
+              "type": "string"
+            },
+            {
+              "id": "fd0740e2-90c6-4680-9047-c9c8aec0dd46",
+              "name": "conversation_id",
+              "value": "={{ $json.body.conversation.messages[0] ? $json.body.conversation.messages[0].conversation_id : $json.body.conversation.id }}",
+              "type": "string"
+            },
+            {
+              "id": "cde0dfdb-c0b7-4b9e-8436-2e655522904c",
+              "name": "message_type",
+              "value": "={{ $json.body.message_type }}",
+              "type": "string"
+            },
+            {
+              "id": "c1c2695a-a6e0-4a62-8230-f1822c6d4f4d",
+              "name": "user_name",
+              "value": "={{ $json.body.sender.name }}",
+              "type": "string"
+            },
+            {
+              "id": "050c333a-5fa6-45ea-9d7a-bef6846086d8",
+              "name": "message",
+              "value": "={{ $json.body.conversation.messages[0] ? $json.body.conversation.messages[0].content : $json.body.content }}",
+              "type": "string"
+            },
+            {
+              "id": "8c785f70-84b5-4f19-9029-6174d35a7018",
+              "name": "inbox_identifier",
+              "value": "={{ $json.body.conversation.contact_inbox.inbox_id }}",
+              "type": "string"
+            },
+            {
+              "id": "826b1702-d923-4668-930b-2e514e76fa42",
+              "name": "contact_identifier",
+              "value": "={{ $json.body.conversation.messages[0] ? $json.body.conversation.messages[0].sender_id : $json.body.sender.id }}",
+              "type": "string"
+            },
+            {
+              "id": "id-8",
+              "name": "sender_type",
+              "value": "={{ $json.body.conversation.messages[0] ? $json.body.conversation.messages[0].sender_type : ($json.body.sender.type || 'contact') }}",
+              "type": "string"
+            },
+            {
+              "id": "id-9",
+              "name": "human_active",
+              "value": "={{ $json.body.conversation.custom_attributes.human_active || false }}",
+              "type": "boolean"
+            },
+            {
+              "id": "id-10",
+              "name": "attachments",
+              "value": "={{ $json.body.conversation.messages[0] && $json.body.conversation.messages[0].attachments ? $json.body.conversation.messages[0].attachments : [] }}",
+              "type": "array"
+            },
+            {
+              "id": "4e321d39-1cc1-4550-8818-c1c9a9b0490e",
+              "name": "Channel",
+              "value": "={{ $json.body.conversation.channel }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -7136,
+        336
+      ],
+      "id": "242e13ea-9a91-403a-836d-cb300cd69d4f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "rule1-cond1",
+                    "leftValue": "={{ $json.message_type }}",
+                    "rightValue": "incoming",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "id": "rule1-cond2",
+                    "leftValue": "={{ $json.message }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "any",
+                      "operation": "exists"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text Message"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "rule2-cond1",
+                    "leftValue": "={{ $json.message_type }}",
+                    "rightValue": "incoming",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "id": "rule2-cond2",
+                    "leftValue": "={{ $json.attachments }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "any",
+                      "operation": "exists"
+                    }
+                  },
+                  {
+                    "id": "rule2-cond3",
+                    "leftValue": "={{ $json.attachments[0].file_type }}",
+                    "rightValue": "image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Photo Message"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "rule3-cond1",
+                    "leftValue": "={{ $json.message_type }}",
+                    "rightValue": "incoming",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  },
+                  {
+                    "id": "rule3-cond2",
+                    "leftValue": "={{ $json.attachments }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "any",
+                      "operation": "exists"
+                    }
+                  },
+                  {
+                    "id": "rule3-cond3",
+                    "leftValue": "={{ $json.attachments[0].file_type }}",
+                    "rightValue": "audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Audio Message"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "eeaad771-d358-4e9c-8477-e9ab4ef6d878",
+                    "leftValue": "outgoing",
+                    "rightValue": "={{ $json.message_type }}",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Outgoing"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -6912,
+        304
+      ],
+      "id": "ec1e8969-89ad-4280-91eb-875064f76e63",
+      "name": "Switch",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Customer Name: {{ $json.user_name }}\nCustomer Message: {{ $json.message }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a website customer-support AI chatbot.\n\nYOUR ROLE\n- You must answer user questions ONLY using the FAQ data provided to you.\n- Do NOT invent information.\n- Do NOT use outside knowledge.\n- If the answer is not found in the FAQ, reply exactly:\n\"Sorry, I don’t have this information right now. Please contact [client Email/Number] support.\"\n\n-If the user asks for a human or live agent (for example: \"agent\", \"human agent\", \"live support\", or \"talk to a human\"), reply exactly:\n\"Please wait a moment, I am notifying a live agent to assist you.\"\n\nDo not add any extra explanations or messages.\n\n\nGREETING RULES\n- If the user message is only a greeting (examples: \"hi\", \"hello\", \"hey\", \"good morning\", \"assalamualaikum\"),\n  respond with a short friendly greeting like:\n  \"Hello! How can I help you today?\"\n- Do NOT search the FAQ for greeting-only messages.\n\nFAQ USAGE RULES\n- Match the user’s question even if it is:\n  - Written differently\n  - Short or incomplete\n  - In broken English\n  - In Bangla or mixed language\n- If multiple FAQ answers are relevant, choose the most accurate one.\n- Keep answers short, clear, and friendly.\n\nLANGUAGE\n- Reply in the same language the user uses (English or Bangla).\n- Keep a polite and professional tone.\n\nSTRICT LIMITS\n- No guessing\n- No assumptions\n- No explanations outside the FAQ\n- No technical AI talk\n\nYou are a helpful, honest website support assistant.\n\nAlways return EXACTLY this JSON format:\n{\n  \"finalAnswer\": \"string\",\n  \"need_human\": true or false\n}\n\nLogic:\n- If FAQ returns an answer → need_human = false\n- If FAQ finds no answer → need_human = true\n- If message is greeting → need_human = false\n- If customer message live agent or human agent → need_human = true"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -5960,
+        48
+      ],
+      "id": "45ea1f37-eb1f-41d8-86af-687b9f5fbeb4",
+      "name": "AI Agent",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"reply\": \"Your message to the customer\",\n  \"needs_human\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -5592,
+        480
+      ],
+      "id": "fde9c25c-6bae-41a9-a47f-9d3772158fa5",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Webhook').item.json.body.conversation.messages[0].id }}",
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -5952,
+        272
+      ],
+      "id": "d4fdc480-9c5c-4838-a192-970e61dcddd6",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://app.chatwoot.com/api/v1/accounts/{{ $('Edit Fields').item.json.account_id }}/conversations/{{ $('Edit Fields').item.json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "api_access_token",
+              "value": "bbwPuzbZyCHAcs79QbijWY3A"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "={{ $json.output.reply }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -5104,
+        336
+      ],
+      "id": "a023495a-896d-48cc-96e3-217feb6ba275",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1MaszmE8op_1we85QvkvMT8srZ9SCi28KjaabN_3u_ho",
+          "mode": "list",
+          "cachedResultName": "Untitled spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MaszmE8op_1we85QvkvMT8srZ9SCi28KjaabN_3u_ho/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MaszmE8op_1we85QvkvMT8srZ9SCi28KjaabN_3u_ho/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Id No": "={{ $('Edit Fields').item.json.conversation_id }}",
+            "Name": "={{ $('Edit Fields').item.json.user_name }}",
+            "last Message": "={{ $('Edit Fields1').item.json.message }}",
+            "human_mode": "={{ $('AI Agent').item.json.output.needs_human }}"
+          },
+          "matchingColumns": [
+            "Id No"
+          ],
+          "schema": [
+            {
+              "id": "Id No",
+              "displayName": "Id No",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "last Message",
+              "displayName": "last Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "human_mode",
+              "displayName": "human_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -5104,
+        144
+      ],
+      "id": "84e0a1f5-39fe-4477-9e74-16427efed696",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "40384222-3496-403e-81bc-857ba3febc00",
+      "name": "Respond OK - Notified Human",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -4880,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "9046e66e-4a2a-415f-a96f-6297c916deb2",
+      "name": "Respond OK - Ignored",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -6240,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1MaszmE8op_1we85QvkvMT8srZ9SCi28KjaabN_3u_ho",
+          "mode": "list",
+          "cachedResultName": "User List",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MaszmE8op_1we85QvkvMT8srZ9SCi28KjaabN_3u_ho/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MaszmE8op_1we85QvkvMT8srZ9SCi28KjaabN_3u_ho/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Id No": "={{ $('Edit Fields').item.json.conversation_id }}",
+            "Name": "={{ $('Edit Fields').item.json.user_name }}",
+            "last Message": "Audio",
+            "human_mode": "true"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Id No",
+              "displayName": "Id No",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last Message",
+              "displayName": "last Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "human_mode",
+              "displayName": "human_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -6688,
+        432
+      ],
+      "id": "ac69e8df-2bd6-4105-af17-e63f204fbf49",
+      "name": "Audio",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1MaszmE8op_1we85QvkvMT8srZ9SCi28KjaabN_3u_ho",
+          "mode": "list",
+          "cachedResultName": "Untitled spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MaszmE8op_1we85QvkvMT8srZ9SCi28KjaabN_3u_ho/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MaszmE8op_1we85QvkvMT8srZ9SCi28KjaabN_3u_ho/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Id No": "={{ $('Edit Fields').item.json.conversation_id }}",
+            "Name": "={{ $('Edit Fields').item.json.user_name }}",
+            "last Message": "Photo",
+            "human_mode": "TRUE"
+          },
+          "matchingColumns": [
+            "Id No"
+          ],
+          "schema": [
+            {
+              "id": "Id No",
+              "displayName": "Id No",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last Message",
+              "displayName": "last Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "human_mode",
+              "displayName": "human_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -6688,
+        240
+      ],
+      "id": "4ba9438b-3929-42d7-b0b3-3c76065779a3",
+      "name": "Photo",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "15015631-4718-4346-b592-8bda3582f1f6",
+      "name": "Respond OK - Ignored1",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -6240,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "22008351-2660-4c1f-998d-c3a20dff3af0",
+              "name": "user_name",
+              "value": "={{ $('Switch').item.json.user_name }}",
+              "type": "string"
+            },
+            {
+              "id": "429ee389-d357-4976-ae98-4ee1a1d3068a",
+              "name": "message",
+              "value": "={{ $('Switch').item.json.message }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -6240,
+        48
+      ],
+      "id": "92b18d4e-e6b5-4ff2-acff-55986aabf875",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2fb13def-33de-48a1-b2b4-80c81f6f1e8f",
+              "leftValue": "={{ $json.output.needs_human }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -5328,
+        48
+      ],
+      "id": "40d1102c-1839-47c6-9fb9-088e2779b42b",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "sendTo": "testnnworkflow13@gmail.com",
+        "subject": "Need Agent",
+        "message": "Please Responce to the customer message in Chatwoot",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -5104,
+        -240
+      ],
+      "id": "9fdad7fe-6a77-4016-824a-ef7ceabde550",
+      "name": "Send a message3",
+      "webhookId": "819e9601-bc3b-4830-ab41-84a58879c350",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SN79AzLmxYdb0jSR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "2fb13def-33de-48a1-b2b4-80c81f6f1e8f",
+              "leftValue": "={{ $json.human_mode }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -6464,
+        -48
+      ],
+      "id": "550ae00a-269d-4b11-b90a-5af32af56e56",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "sendTo": "testnnworkflow13@gmail.com",
+        "subject": "Sent Photo",
+        "message": "Customer has send Photo please respond to it",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -6464,
+        240
+      ],
+      "id": "4def20cd-956a-4679-a8d6-9e05a6ccf127",
+      "name": "Send a message",
+      "webhookId": "819e9601-bc3b-4830-ab41-84a58879c350",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SN79AzLmxYdb0jSR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "testnnworkflow13@gmail.com",
+        "subject": "Audio File ",
+        "message": "Customer has sent Audio File ",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        -6464,
+        432
+      ],
+      "id": "b4301f30-2a5c-41b2-a8df-356b7e980d6f",
+      "name": "Send a message4",
+      "webhookId": "819e9601-bc3b-4830-ab41-84a58879c350",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SN79AzLmxYdb0jSR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "documentId": {
+          "__rl": true,
+          "value": "1MaszmE8op_1we85QvkvMT8srZ9SCi28KjaabN_3u_ho",
+          "mode": "list",
+          "cachedResultName": "User List",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MaszmE8op_1we85QvkvMT8srZ9SCi28KjaabN_3u_ho/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MaszmE8op_1we85QvkvMT8srZ9SCi28KjaabN_3u_ho/edit#gid=0"
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -6240,
+        720
+      ],
+      "id": "c991619f-dfe8-4da6-a80d-0fd069874a11",
+      "name": "Delete rows or columns from sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "1e560544-449d-4fe7-9346-b25ef4df7a92",
+              "leftValue": "={{ $json.message }}",
+              "rightValue": "/bot on",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "11eb1b73-54e9-4744-806b-110628e029be",
+              "leftValue": "={{ $json.message }}",
+              "rightValue": "bot on",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -6464,
+        816
+      ],
+      "id": "9655e403-f196-425a-ab36-fc2751e9aa36",
+      "name": "Bot On/Off"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1MaszmE8op_1we85QvkvMT8srZ9SCi28KjaabN_3u_ho",
+          "mode": "list",
+          "cachedResultName": "Untitled spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MaszmE8op_1we85QvkvMT8srZ9SCi28KjaabN_3u_ho/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MaszmE8op_1we85QvkvMT8srZ9SCi28KjaabN_3u_ho/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Id No",
+              "lookupValue": "={{ $json.conversation_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -6688,
+        -48
+      ],
+      "id": "6cf0f2a9-519d-4ad7-8275-541f96ad9fc3",
+      "name": "Read The Data",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1MaszmE8op_1we85QvkvMT8srZ9SCi28KjaabN_3u_ho",
+          "mode": "list",
+          "cachedResultName": "User List",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MaszmE8op_1we85QvkvMT8srZ9SCi28KjaabN_3u_ho/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1MaszmE8op_1we85QvkvMT8srZ9SCi28KjaabN_3u_ho/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Id No": "={{ $('Edit Fields').item.json.conversation_id }}",
+            "human_mode": "true"
+          },
+          "matchingColumns": [
+            "Id No"
+          ],
+          "schema": [
+            {
+              "id": "Id No",
+              "displayName": "Id No",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "last Message",
+              "displayName": "last Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "human_mode",
+              "displayName": "human_mode",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -6240,
+        912
+      ],
+      "id": "1d1d840c-3fc7-4a45-95fd-b453dc17af6d",
+      "name": "Append or update row in User Sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "4919c4bf-eae4-4b18-b570-c6fdf8654b65",
+      "name": "Respond OK - Ignored2",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -5784,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://app.chatwoot.com/api/v1/accounts/{{ $('Edit Fields').item.json.account_id }}/conversations/{{ $('Edit Fields').item.json.conversation_id }}/messages",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "api_access_token",
+              "value": "bbwPuzbZyCHAcs79QbijWY3A"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "content",
+              "value": "={{ $json.output.reply }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -5104,
+        -48
+      ],
+      "id": "2e2d36d6-a5c0-457f-b7a6-3cd2d7f25753",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "2a3fbf04-f14c-4954-98f0-0874139836a9",
+      "name": "Respond OK - Ignored3",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -6464,
+        624
+      ]
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4",
+          "mode": "list",
+          "cachedResultName": "FAQ for Export-Pi",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "FAQ's",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        -5824,
+        272
+      ],
+      "id": "4afee88a-94be-454c-bf82-b3f58b9978b7",
+      "name": "FAQ",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chatwoot-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -7360,
+        336
+      ],
+      "id": "45bd2ae4-2a74-4a3e-9328-48d227e983f5",
+      "name": "Webhook",
+      "webhookId": "d43436bd-8ac4-447c-be70-c6ebcf9a60cd"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "240e920f-84c5-4594-8331-f8e1c3c0c9a1",
+              "leftValue": "={{ $json.sender_type }}",
+              "rightValue": "User",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "92fe95d1-1af4-4527-88c0-953cf437e236",
+              "leftValue": "={{ $json.user_name }}",
+              "rightValue": "BotAgent",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -6688,
+        720
+      ],
+      "id": "08f2a89c-6b6b-404d-b3b5-ef9074a02940",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -6016,
+        480
+      ],
+      "id": "aff7885d-101f-42e9-ba05-fb016e6c77b4",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "NXuG8PWPuFXMg0rR",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        -5696,
+        272
+      ],
+      "id": "81da84be-d3f1-4c6f-8cee-30c6c6627fcb",
+      "name": "Auto-fixing Output Parser"
+    }
+  ],
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Read The Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Photo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Audio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Respond OK - Notified Human",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond OK - Notified Human",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Send a message3",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Respond OK - Ignored",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Photo": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Audio": {
+      "main": [
+        [
+          {
+            "node": "Send a message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Respond OK - Ignored1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message4": {
+      "main": [
+        [
+          {
+            "node": "Respond OK - Ignored1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message3": {
+      "main": [
+        [
+          {
+            "node": "Respond OK - Notified Human",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bot On/Off": {
+      "main": [
+        [
+          {
+            "node": "Delete rows or columns from sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Append or update row in User Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read The Data": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete rows or columns from sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond OK - Ignored2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in User Sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond OK - Ignored2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Respond OK - Notified Human",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FAQ": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Respond OK - Ignored3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Bot On/Off",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "n8n.doshme.me",
+            "user-agent": "rest-client/2.1.0 (linux x86_64) ruby/3.4.4p34",
+            "content-length": "2721",
+            "accept": "application/json",
+            "accept-encoding": "gzip;q=1.0,deflate;q=0.6,identity;q=0.3",
+            "baggage": "sentry-trace_id=5c96be9718f04a72a1703ef8e89773f3,sentry-environment=production,sentry-release=ee7187d2ed8af51a0af9afcbb7ba45fc6fd45886,sentry-public_key=8e13c09a3ceb4e60bfe1bd84f799a3f8",
+            "content-type": "application/json",
+            "sentry-trace": "5c96be9718f04a72a1703ef8e89773f3-b81b2c19df1c4c93",
+            "via": "1.1 Caddy",
+            "x-forwarded-for": "3.213.197.223",
+            "x-forwarded-host": "n8n.doshme.me",
+            "x-forwarded-proto": "https"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "account": {
+              "id": 146986,
+              "name": "WUB"
+            },
+            "additional_attributes": {},
+            "content_attributes": {
+              "in_reply_to_external_id": null
+            },
+            "content_type": "text",
+            "content": "want to talk with human",
+            "conversation": {
+              "additional_attributes": {},
+              "can_reply": true,
+              "channel": "Channel::FacebookPage",
+              "contact_inbox": {
+                "id": 634423238,
+                "contact_id": 636235984,
+                "inbox_id": 90829,
+                "source_id": "9484413018318261",
+                "created_at": "2026-01-09T12:34:25.613Z",
+                "updated_at": "2026-01-09T12:34:25.613Z",
+                "hmac_verified": false,
+                "pubsub_token": "mF4pg32h3in6T5cqhjmuDow7"
+              },
+              "id": 11,
+              "inbox_id": 90829,
+              "messages": [
+                {
+                  "id": 408200012,
+                  "content": "want to talk with human",
+                  "account_id": 146986,
+                  "inbox_id": 90829,
+                  "conversation_id": 11,
+                  "message_type": 0,
+                  "created_at": 1768476172,
+                  "updated_at": "2026-01-15T11:22:52.695Z",
+                  "private": false,
+                  "status": "sent",
+                  "source_id": "m_4u_aM_gviwU8KMPwevcy6iNh78Kt_Ubx8cdX2n8-KxZf8QQZSTX4dj5wdpn6k7tts3E8SQ_3PC9cc4kzoWtBUg",
+                  "content_type": "text",
+                  "content_attributes": {
+                    "in_reply_to_external_id": null
+                  },
+                  "sender_type": "Contact",
+                  "sender_id": 636235984,
+                  "external_source_ids": {},
+                  "additional_attributes": {},
+                  "processed_message_content": "want to talk with human",
+                  "sentiment": {},
+                  "conversation": {
+                    "assignee_id": 155689,
+                    "unread_count": 10,
+                    "last_activity_at": 1768476172,
+                    "contact_inbox": {
+                      "source_id": "9484413018318261"
+                    }
+                  },
+                  "sender": {
+                    "additional_attributes": {},
+                    "custom_attributes": {},
+                    "email": null,
+                    "id": 636235984,
+                    "identifier": null,
+                    "name": "Himel Khan Hsa",
+                    "phone_number": null,
+                    "thumbnail": "",
+                    "blocked": false,
+                    "type": "contact"
+                  }
+                }
+              ],
+              "labels": [],
+              "meta": {
+                "sender": {
+                  "additional_attributes": {},
+                  "custom_attributes": {},
+                  "email": null,
+                  "id": 636235984,
+                  "identifier": null,
+                  "name": "Himel Khan Hsa",
+                  "phone_number": null,
+                  "thumbnail": "",
+                  "blocked": false,
+                  "type": "contact"
+                },
+                "assignee": {
+                  "id": 155689,
+                  "name": "BotAgent",
+                  "available_name": "BotAgent",
+                  "avatar_url": "",
+                  "type": "user",
+                  "availability_status": null,
+                  "thumbnail": ""
+                },
+                "assignee_type": "User",
+                "team": null,
+                "hmac_verified": false
+              },
+              "status": "open",
+              "custom_attributes": {},
+              "snoozed_until": null,
+              "unread_count": 10,
+              "first_reply_created_at": "2026-01-09T12:34:28.420Z",
+              "priority": null,
+              "waiting_since": 1768476172,
+              "agent_last_seen_at": 1767966249,
+              "contact_last_seen_at": 0,
+              "last_activity_at": 1768476172,
+              "timestamp": 1768476172,
+              "created_at": 1767962065,
+              "updated_at": 1768476172.734315
+            },
+            "created_at": "2026-01-15T11:22:52.695Z",
+            "id": 408200012,
+            "inbox": {
+              "id": 90829,
+              "name": "Random Videos"
+            },
+            "message_type": "incoming",
+            "private": false,
+            "sender": {
+              "account": {
+                "id": 146986,
+                "name": "WUB"
+              },
+              "additional_attributes": {},
+              "avatar": "",
+              "custom_attributes": {},
+              "email": null,
+              "id": 636235984,
+              "identifier": null,
+              "name": "Himel Khan Hsa",
+              "phone_number": null,
+              "thumbnail": "",
+              "blocked": false
+            },
+            "source_id": "m_4u_aM_gviwU8KMPwevcy6iNh78Kt_Ubx8cdX2n8-KxZf8QQZSTX4dj5wdpn6k7tts3E8SQ_3PC9cc4kzoWtBUg",
+            "event": "message_created"
+          },
+          "webhookUrl": "https://n8n.doshme.me/webhook/chatwoot-webhook",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "versionId": "cc09b3fe-0e36-4588-8988-21c27aedc688",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-01-04T10:16:30.894Z",
+      "createdAt": "2026-01-04T10:16:30.894Z",
+      "role": "workflow:owner",
+      "workflowId": "FQNY0mukIioLQ9Nm",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "tags": []
+}
