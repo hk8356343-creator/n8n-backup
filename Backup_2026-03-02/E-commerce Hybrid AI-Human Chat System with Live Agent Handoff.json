@@ -1,0 +1,727 @@
+{
+  "updatedAt": "2025-12-28T13:18:37.000Z",
+  "createdAt": "2025-12-28T12:13:55.178Z",
+  "id": "Nu3tV51ROgsauk5v",
+  "name": "E-commerce Hybrid AI-Human Chat System with Live Agent Handoff",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "options": {}
+      },
+      "id": "572a040a-6331-462c-acf8-0052f777ffbc",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -64,
+        444
+      ],
+      "webhookId": "c3032ca1-b6d6-4e02-9085-cc10841f26b5"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agent-reply",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "5d0ae4a3-9434-4a71-b184-020389bd4229",
+      "name": "Live Agent Reply Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -64,
+        0
+      ],
+      "webhookId": "6ac6c812-821f-4a84-952b-5b4b0e2f2b9c"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-control",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "ca79378d-01a4-46f3-9932-0bbe1efe78ac",
+      "name": "AI On/Off Control Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -64,
+        816
+      ],
+      "webhookId": "bba2a337-0e8f-4c62-b0dc-5e62021b6646"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.sessionId }}",
+        "tableName": "chat_history"
+      },
+      "id": "aed27560-f1d7-4157-93f7-0eea50184ae0",
+      "name": "Postgres Chat Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        456,
+        224
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "qZc7gjavQ60jXDSV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "You are a helpful e-commerce customer support assistant. Answer questions about products, orders, shipping, returns, and general inquiries. Be friendly, professional, and concise. If you cannot help with something, politely let the customer know."
+        }
+      },
+      "id": "a9ae9e48-a687-4923-818c-1575a895a4a6",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        960,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO pending_messages (session_id, message, created_at, replied) VALUES ($1, $2, NOW(), false) RETURNING id",
+        "options": {
+          "queryReplacement": "={{ $json.sessionId }},={{ $json.chatInput }}"
+        }
+      },
+      "id": "2e1ff70c-5e5c-4179-b4e4-32d2fb5f1eb6",
+      "name": "Store Message for Human Agent",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        1024,
+        592
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "qZc7gjavQ60jXDSV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT ai_enabled FROM chat_sessions WHERE session_id = $1 LIMIT 1",
+        "options": {
+          "queryReplacement": "={{ $json.sessionId }}"
+        }
+      },
+      "id": "2dd40284-69a9-4fb0-b5b5-40d7c12681c4",
+      "name": "Get AI Mode Status",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        448,
+        444
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "qZc7gjavQ60jXDSV",
+          "name": "Postgres account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO chat_sessions (session_id, ai_enabled) VALUES ($1, $2) ON CONFLICT (session_id) DO UPDATE SET ai_enabled = $2",
+        "options": {
+          "queryReplacement": "={{ $json.body.sessionId }},={{ $json.body.aiEnabled }}"
+        }
+      },
+      "id": "dd9919b4-578e-4b22-807a-147932176fab",
+      "name": "Update AI Mode",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        160,
+        816
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "qZc7gjavQ60jXDSV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": true,\n  \"message\": \"Reply sent successfully\"\n}",
+        "options": {}
+      },
+      "id": "105e5cbd-a2a2-4ebc-a71d-5762584c501f",
+      "name": "Respond to Live Agent",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1024,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"aiEnabled\": {{ $json.body.aiEnabled }}\n}",
+        "options": {}
+      },
+      "id": "dd67c8bf-6ae5-4a35-94b2-1822ab20eedc",
+      "name": "Respond to AI Control",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        384,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.output }}",
+        "waitUserReply": false,
+        "options": {
+          "memoryConnection": true
+        }
+      },
+      "id": "beb27fbc-e66a-404e-bf2f-568b0f768997",
+      "name": "Send AI Response",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1,
+      "position": [
+        1312,
+        296
+      ]
+    },
+    {
+      "parameters": {
+        "message": "Your message has been queued for a human agent. Someone will respond shortly.",
+        "waitUserReply": false,
+        "options": {
+          "memoryConnection": true
+        }
+      },
+      "id": "74bf4a22-cac2-4635-ac58-6048eb29eea9",
+      "name": "Send Human Queue Message",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1,
+      "position": [
+        1312,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, session_id, message FROM pending_messages WHERE id = $1 AND replied = false LIMIT 1",
+        "options": {
+          "queryReplacement": "={{ $json.body.messageId }}"
+        }
+      },
+      "id": "242ea49a-febd-4768-8de1-21699e2bf673",
+      "name": "Get Pending Message",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        160,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "qZc7gjavQ60jXDSV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.body.reply }}",
+        "waitUserReply": false,
+        "options": {
+          "memoryConnection": true
+        }
+      },
+      "id": "54ab0228-2e5a-460b-a6c0-a63ba6bf5f45",
+      "name": "Send Human Agent Reply",
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1,
+      "position": [
+        384,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "UPDATE pending_messages SET replied = true, replied_at = NOW() WHERE id = $1",
+        "options": {
+          "queryReplacement": "={{ $json.id }}"
+        }
+      },
+      "id": "25da179c-f3a1-429b-91f7-a5fe9fd30dc7",
+      "name": "Mark Message as Replied",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        736,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "qZc7gjavQ60jXDSV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "sessionId",
+              "value": "={{ $('Chat Trigger').item.json.sessionId }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "chatInput",
+              "value": "={{ $('Chat Trigger').item.json.chatInput }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "36c003f0-5eb8-4c18-a68c-cf221af599bd",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        160,
+        444
+      ]
+    },
+    {
+      "parameters": {
+        "path": "agent-dashboard",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b55d6bea-23df-4c82-b412-cb85a8b571e6",
+      "name": "Agent Dashboard Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -64,
+        1040
+      ],
+      "webhookId": "e907bff5-4c17-40f1-81bb-964d8e31614e"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, session_id, message, created_at FROM pending_messages WHERE replied = false ORDER BY created_at DESC",
+        "options": {}
+      },
+      "id": "c361ef56-217e-4de6-9a18-e5cdab21a357",
+      "name": "Get All Pending Messages",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        160,
+        1040
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "qZc7gjavQ60jXDSV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "html": "=<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\" />\n  <title>Live Agent Dashboard</title>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n</head>\n<body>\n  <div class=\"container\">\n    <header>\n      <h1>🎧 Live Agent Dashboard</h1>\n      <p class=\"subtitle\">Pending Customer Messages</p>\n    </header>\n\n    <div class=\"stats\">\n      <div class=\"stat-card\">\n        <span class=\"stat-number\">{{ $json.length || 0 }}</span>\n        <span class=\"stat-label\">Pending Messages</span>\n      </div>\n    </div>\n\n    <div class=\"messages-container\">\n      {{ $json.length === 0 ? '<div class=\"no-messages\"><p>✅ No pending messages</p><p class=\"subtitle\">All caught up!</p></div>' : '' }}\n      \n      {{ $json.map((msg, index) => `\n        <div class=\"message-card\" id=\"message-${msg.id}\">\n          <div class=\"message-header\">\n            <span class=\"session-id\">Session: ${msg.session_id}</span>\n            <span class=\"timestamp\">${new Date(msg.created_at).toLocaleString()}</span>\n          </div>\n          <div class=\"message-content\">\n            <p>${msg.message}</p>\n          </div>\n          <div class=\"reply-section\">\n            <textarea \n              id=\"reply-${msg.id}\" \n              class=\"reply-input\" \n              placeholder=\"Type your reply here...\"\n              rows=\"3\"\n            ></textarea>\n            <button \n              class=\"send-btn\" \n              onclick=\"sendReply(${msg.id}, '${msg.session_id}')\"\n            >\n              Send Reply\n            </button>\n          </div>\n        </div>\n      `).join('') }}\n    </div>\n\n    <div class=\"refresh-info\">\n      <p>Auto-refreshing every 10 seconds</p>\n      <button class=\"refresh-btn\" onclick=\"location.reload()\">🔄 Refresh Now</button>\n    </div>\n  </div>\n</body>\n</html>\n\n<style>\n* {\n  margin: 0;\n  padding: 0;\n  box-sizing: border-box;\n}\n\nbody {\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;\n  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n  min-height: 100vh;\n  padding: 20px;\n}\n\n.container {\n  max-width: 1200px;\n  margin: 0 auto;\n}\n\nheader {\n  text-align: center;\n  color: white;\n  margin-bottom: 30px;\n}\n\nheader h1 {\n  font-size: 36px;\n  font-weight: bold;\n  margin-bottom: 10px;\n}\n\nheader .subtitle {\n  font-size: 18px;\n  opacity: 0.9;\n}\n\n.stats {\n  display: flex;\n  justify-content: center;\n  margin-bottom: 30px;\n}\n\n.stat-card {\n  background: white;\n  padding: 20px 40px;\n  border-radius: 12px;\n  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n}\n\n.stat-number {\n  font-size: 48px;\n  font-weight: bold;\n  color: #667eea;\n}\n\n.stat-label {\n  font-size: 14px;\n  color: #666;\n  margin-top: 5px;\n}\n\n.messages-container {\n  display: flex;\n  flex-direction: column;\n  gap: 20px;\n}\n\n.message-card {\n  background: white;\n  border-radius: 12px;\n  padding: 20px;\n  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);\n  transition: transform 0.2s;\n}\n\n.message-card:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);\n}\n\n.message-header {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 15px;\n  padding-bottom: 10px;\n  border-bottom: 2px solid #f0f0f0;\n}\n\n.session-id {\n  font-weight: bold;\n  color: #667eea;\n  font-size: 14px;\n}\n\n.timestamp {\n  font-size: 12px;\n  color: #999;\n}\n\n.message-content {\n  margin-bottom: 15px;\n}\n\n.message-content p {\n  font-size: 16px;\n  line-height: 1.6;\n  color: #333;\n}\n\n.reply-section {\n  display: flex;\n  flex-direction: column;\n  gap: 10px;\n}\n\n.reply-input {\n  width: 100%;\n  padding: 12px;\n  border: 2px solid #e0e0e0;\n  border-radius: 8px;\n  font-size: 14px;\n  font-family: inherit;\n  resize: vertical;\n  transition: border-color 0.2s;\n}\n\n.reply-input:focus {\n  outline: none;\n  border-color: #667eea;\n}\n\n.send-btn {\n  align-self: flex-end;\n  padding: 12px 24px;\n  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n  color: white;\n  border: none;\n  border-radius: 8px;\n  font-size: 14px;\n  font-weight: bold;\n  cursor: pointer;\n  transition: transform 0.2s, box-shadow 0.2s;\n}\n\n.send-btn:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);\n}\n\n.send-btn:active {\n  transform: translateY(0);\n}\n\n.no-messages {\n  background: white;\n  border-radius: 12px;\n  padding: 60px 20px;\n  text-align: center;\n  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);\n}\n\n.no-messages p {\n  font-size: 24px;\n  color: #333;\n  margin-bottom: 10px;\n}\n\n.no-messages .subtitle {\n  font-size: 16px;\n  color: #999;\n}\n\n.refresh-info {\n  text-align: center;\n  margin-top: 30px;\n  color: white;\n}\n\n.refresh-info p {\n  margin-bottom: 10px;\n  opacity: 0.9;\n}\n\n.refresh-btn {\n  padding: 10px 20px;\n  background: white;\n  color: #667eea;\n  border: none;\n  border-radius: 8px;\n  font-size: 14px;\n  font-weight: bold;\n  cursor: pointer;\n  transition: transform 0.2s;\n}\n\n.refresh-btn:hover {\n  transform: scale(1.05);\n}\n\n.success-message {\n  position: fixed;\n  top: 20px;\n  right: 20px;\n  background: #4caf50;\n  color: white;\n  padding: 15px 20px;\n  border-radius: 8px;\n  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);\n  animation: slideIn 0.3s ease-out;\n  z-index: 1000;\n}\n\n@keyframes slideIn {\n  from {\n    transform: translateX(400px);\n    opacity: 0;\n  }\n  to {\n    transform: translateX(0);\n    opacity: 1;\n  }\n}\n\n@media (max-width: 768px) {\n  header h1 {\n    font-size: 28px;\n  }\n  \n  .message-card {\n    padding: 15px;\n  }\n}\n</style>\n\n<script>\nconst WEBHOOK_BASE_URL = 'https://snake-test.app.n8n.cloud/webhook';\n\nasync function sendReply(messageId, sessionId) {\n  const replyInput = document.getElementById(`reply-${messageId}`);\n  const reply = replyInput.value.trim();\n  \n  if (!reply) {\n    alert('Please enter a reply');\n    return;\n  }\n  \n  try {\n    const response = await fetch(`${WEBHOOK_BASE_URL}/agent-reply`, {\n      method: 'POST',\n      headers: {\n        'Content-Type': 'application/json'\n      },\n      body: JSON.stringify({\n        messageId: messageId,\n        sessionId: sessionId,\n        reply: reply\n      })\n    });\n    \n    if (response.ok) {\n      showSuccessMessage('Reply sent successfully!');\n      \n      // Remove the message card from view\n      const messageCard = document.getElementById(`message-${messageId}`);\n      messageCard.style.transition = 'opacity 0.3s, transform 0.3s';\n      messageCard.style.opacity = '0';\n      messageCard.style.transform = 'translateX(100px)';\n      \n      setTimeout(() => {\n        messageCard.remove();\n        \n        // Check if there are no more messages\n        const messagesContainer = document.querySelector('.messages-container');\n        if (messagesContainer.children.length === 0) {\n          location.reload();\n        }\n      }, 300);\n    } else {\n      alert('Failed to send reply. Please try again.');\n    }\n  } catch (error) {\n    console.error('Error sending reply:', error);\n    alert('Error sending reply. Please check your connection.');\n  }\n}\n\nfunction showSuccessMessage(message) {\n  const successDiv = document.createElement('div');\n  successDiv.className = 'success-message';\n  successDiv.textContent = message;\n  document.body.appendChild(successDiv);\n  \n  setTimeout(() => {\n    successDiv.style.opacity = '0';\n    setTimeout(() => successDiv.remove(), 300);\n  }, 3000);\n}\n\n// Auto-refresh every 10 seconds\nsetInterval(() => {\n  location.reload();\n}, 10000);\n\nconsole.log('Live Agent Dashboard loaded');\n</script>"
+      },
+      "id": "6a6a036f-a255-48ab-b570-25c2b77d023d",
+      "name": "Build Agent Dashboard HTML",
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        384,
+        1040
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html"
+              }
+            ]
+          }
+        }
+      },
+      "id": "54276e91-2c70-4960-8b0d-bca35f8387c6",
+      "name": "Respond with Dashboard",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        608,
+        1040
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        968,
+        416
+      ],
+      "id": "f76a25f8-37bb-4552-8d23-99f428176005",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "71GFeIFqhQsPZP2y",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "292a6fbf-a00d-4afd-bbd2-1cb894b4b3c7",
+              "leftValue": "={{ $json.ai_enabled }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        736,
+        444
+      ],
+      "id": "5824cb75-c01d-4f36-8f39-215b837493c2",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "19ltlNwmAe4KptM3zemcj8EFF61_lCiW54T-VU_wu7Cg",
+          "mode": "list",
+          "cachedResultName": "Basic Question",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/19ltlNwmAe4KptM3zemcj8EFF61_lCiW54T-VU_wu7Cg/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1994913886,
+          "mode": "list",
+          "cachedResultName": "FAQ",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/19ltlNwmAe4KptM3zemcj8EFF61_lCiW54T-VU_wu7Cg/edit#gid=1994913886"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        1096,
+        416
+      ],
+      "id": "4e87b655-d18b-40ad-a9ef-6b8241d0449b",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Live Agent Reply Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Pending Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI On/Off Control Webhook": {
+      "main": [
+        [
+          {
+            "node": "Update AI Mode",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Send AI Response",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Send Human Queue Message",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Send Human Agent Reply",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Message for Human Agent": {
+      "main": [
+        [
+          {
+            "node": "Send Human Queue Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update AI Mode": {
+      "main": [
+        [
+          {
+            "node": "Respond to AI Control",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Pending Message": {
+      "main": [
+        [
+          {
+            "node": "Send Human Agent Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Human Agent Reply": {
+      "main": [
+        [
+          {
+            "node": "Mark Message as Replied",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Message as Replied": {
+      "main": [
+        [
+          {
+            "node": "Respond to Live Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "Get AI Mode Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Dashboard Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get All Pending Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All Pending Messages": {
+      "main": [
+        [
+          {
+            "node": "Build Agent Dashboard HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Agent Dashboard HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond with Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get AI Mode Status": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Store Message for Human Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "fa2def7f-c6b7-492e-b5a0-e1c97623c740",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2025-12-28T12:13:55.181Z",
+      "createdAt": "2025-12-28T12:13:55.181Z",
+      "role": "workflow:owner",
+      "workflowId": "Nu3tV51ROgsauk5v",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "tags": []
+}
