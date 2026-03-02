@@ -1,0 +1,548 @@
+{
+  "updatedAt": "2025-12-28T11:55:37.000Z",
+  "createdAt": "2025-12-23T15:46:52.102Z",
+  "id": "tfYhp9oExIXkVz8Q",
+  "name": "Image-Based Product Search with Vector Similarity Matching",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "qdrantUrl",
+              "value": "<__PLACEHOLDER_VALUE__Qdrant server URL (e.g., http://localhost:6333)__>",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "qdrantCollection",
+              "value": "<__PLACEHOLDER_VALUE__Qdrant collection name__>",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "topK",
+              "value": 1,
+              "type": "number"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "5aa638a2-d85f-4ef3-a63e-78d11aa84df0",
+      "name": "Workflow Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -384,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const imageUrl = $input.item.json.body.imageUrl || $input.item.json.imageUrl;\n\nif (!imageUrl) {\n  throw new Error('No imageUrl provided in request body');\n}\n\n// Download the image\nconst response = await fetch(imageUrl);\nif (!response.ok) {\n  throw new Error(`Failed to download image: ${response.statusText}`);\n}\n\nconst arrayBuffer = await response.arrayBuffer();\nconst buffer = Buffer.from(arrayBuffer);\nconst base64Image = buffer.toString('base64');\n\nreturn {\n  json: {\n    imageUrl: imageUrl,\n    base64Image: base64Image,\n    mimeType: response.headers.get('content-type') || 'image/jpeg'\n  }\n};"
+      },
+      "id": "1e106c93-7419-49da-a28b-0f3d7d8b098f",
+      "name": "Download Image and Convert to Base64",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "load",
+        "qdrantCollection": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $('Workflow Configuration').first().json.qdrantCollection }}"
+        },
+        "prompt": "={{ $json.base64Image }}",
+        "topK": "={{ $('Workflow Configuration').first().json.topK }}",
+        "options": {}
+      },
+      "id": "776aadd3-b518-451b-8e94-650221063d27",
+      "name": "Qdrant Vector Store - Retrieve",
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        -112
+      ],
+      "credentials": {
+        "qdrantApi": {
+          "id": "cg0Fa1a7x9KlMOac",
+          "name": "QdrantApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "product_name",
+              "value": "={{ $json.metadata.name }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "price",
+              "value": "={{ $json.metadata.price }}",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "image_url",
+              "value": "={{ $json.metadata.image_url }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "product_id",
+              "value": "={{ $json.metadata.product_id }}",
+              "type": "string"
+            },
+            {
+              "id": "id-5",
+              "name": "similarity_score",
+              "value": "={{ $json.score }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "381732ab-15eb-4897-b3d9-2e5c5a226a1b",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        -112
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "8e7d47cc-cc7b-4e84-b808-cc7b10981495",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        640,
+        -112
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        256,
+        192
+      ],
+      "id": "5c0e35b2-5b13-4827-b971-cbb1491d7e91",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "71GFeIFqhQsPZP2y",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "79669e99-7125-402d-9d5f-dc9c2c7d0581",
+              "leftValue": "={{ $json.query['hub.mode'] }}",
+              "rightValue": "subscribe",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "1a59687c-5b4d-4169-b527-ef9ff7604099",
+              "leftValue": "={{ $json.query['hub.verify_token'] }}",
+              "rightValue": "token",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -1072,
+        -64
+      ],
+      "id": "f9b4cba9-d659-48f9-a775-b9b36dbd9e4c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseCode": 404
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -848,
+        32
+      ],
+      "id": "8a822ab5-6bce-4780-886d-16e08c13322d",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f5cac431-cd93-4a6a-9981-5e4077fc735f",
+              "name": "sender_id",
+              "value": "={{ $json.body.entry[0].messaging[0].sender.id }}",
+              "type": "string"
+            },
+            {
+              "id": "b60d6abc-74be-4299-86e7-b024e1182d72",
+              "name": "receiver_id",
+              "value": "={{ $json.body.entry[0].messaging[0].recipient.id }}",
+              "type": "string"
+            },
+            {
+              "id": "f71b869c-ddb6-4a6d-9012-64887a2a355c",
+              "name": "message",
+              "value": "={{ $json.body.entry[0].messaging[0].message.text }}",
+              "type": "string"
+            },
+            {
+              "id": "id-4",
+              "name": "message_id",
+              "value": "={{ $json.body.entry[0].messaging[0].message.mid }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1072,
+        240
+      ],
+      "id": "10864081-c1f8-4385-a073-fec408d2c60e",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "condition-1",
+                    "leftValue": "={{ $json.body.entry[0].messaging[0].message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "any",
+                      "operation": "exists",
+                      "name": "filter.operator.exists"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Text Message"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "condition-2a",
+                    "leftValue": "={{ $json.body.entry[0].messaging[0].message.attachments }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "any",
+                      "operation": "exists",
+                      "name": "filter.operator.exists"
+                    }
+                  },
+                  {
+                    "id": "condition-2b",
+                    "leftValue": "={{ $json.body.entry[0].messaging[0].message.attachments[0].type }}",
+                    "rightValue": "audio",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Voice/Image"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "condition-3a",
+                    "leftValue": "={{ $json.body.entry[0].messaging[0].message.attachments }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "any",
+                      "operation": "exists",
+                      "name": "filter.operator.exists"
+                    }
+                  },
+                  {
+                    "id": "condition-3b",
+                    "leftValue": "={{ $json.body.entry[0].messaging[0].message.attachments[0].type }}",
+                    "rightValue": "image",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Voice/Image"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8b60d6d3-9fe9-42bf-a5ce-efd0e3676393",
+      "name": "Check Message Type",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -848,
+        224
+      ],
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "multipleMethods": true,
+        "path": "fb-webhook",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1296,
+        48
+      ],
+      "id": "0f6d73cb-fb82-4d9d-8fc1-b73cba8f721f",
+      "name": "Webhook",
+      "webhookId": "8808a800-c654-4cdd-9de6-64bf41c7822d"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.query['hub.challenge'] }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        -848,
+        -160
+      ],
+      "id": "eef9b6b5-7ad7-4469-a430-57f3f50178ae",
+      "name": "Respond to Webhook2"
+    }
+  ],
+  "connections": {
+    "Workflow Configuration": {
+      "main": [
+        [
+          {
+            "node": "Download Image and Convert to Base64",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Image and Convert to Base64": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Vector Store - Retrieve",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qdrant Vector Store - Retrieve": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Qdrant Vector Store - Retrieve",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Check Message Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Message Type": {
+      "main": [
+        [],
+        [],
+        [
+          {
+            "node": "Workflow Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "759a70f4-1e2c-41fc-ad1d-15814ee4c920",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2025-12-23T15:46:52.106Z",
+      "createdAt": "2025-12-23T15:46:52.106Z",
+      "role": "workflow:owner",
+      "workflowId": "tfYhp9oExIXkVz8Q",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "tags": []
+}
