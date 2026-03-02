@@ -1,0 +1,303 @@
+{
+  "updatedAt": "2025-12-25T12:15:35.000Z",
+  "createdAt": "2025-12-13T15:01:22.898Z",
+  "id": "HnyZpqDo5CvVEkKj",
+  "name": "My workflow 2",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "test",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "test",
+              "fieldType": "file",
+              "multipleFiles": false,
+              "acceptFileTypes": ".csv",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -576,
+        264
+      ],
+      "id": "dc66d4ec-431e-4e5c-9763-71c76a1fc19c",
+      "name": "On form submission",
+      "webhookId": "9e38fe73-8fc0-42db-a6fc-1f92874b3faa"
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        -352,
+        264
+      ],
+      "id": "1cd3ce18-17c3-4fea-9824-d48f0e0e134d",
+      "name": "Postgres PGVector Store",
+      "credentials": {
+        "postgres": {
+          "id": "qZc7gjavQ60jXDSV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "loader": "csvLoader",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        -216,
+        488
+      ],
+      "id": "60c7564b-19ee-47d7-a885-190e607d53df",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -344,
+        488
+      ],
+      "id": "5aa02301-2c8d-43c2-841f-40cee135cb70",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "71GFeIFqhQsPZP2y",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -576,
+        -272
+      ],
+      "id": "3a05aba6-27f6-4dbf-b68d-e7276049e2a3",
+      "name": "When chat message received",
+      "webhookId": "2dedbb5b-5430-4e07-9c27-5f984bc9f495"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "=You are a product assistant for a shoe store.\n\nThe user may first send an image of a shoe, and later ask questions about that same shoe.\n\nWhen an image is provided:\n\nUse the image embedding to search the PostgreSQL pgvector database\n\nFind the most similar product image\n\nRetrieve the related product_id\n\nSave this product_id as the current product context\n\nWhen answering user questions:\n\nAlways collect product information ONLY from PostgreSQL using the stored product_id\n\nDo NOT guess or invent information\n\nUse only database fields such as:\n\nname\n\nsku\n\nprice\n\ndescription\n\navailable sizes (if present)\n\nIf the user asks a question but no product context exists:\n\nAsk the user to upload a shoe image first\n\nAnswer clearly, shortly, and like a helpful salesperson."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -296,
+        -480
+      ],
+      "id": "a04ab740-1e99-4d7d-9f1b-a8d5e7ff948f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [
+        -224,
+        -256
+      ],
+      "id": "90f4f6c9-d118-48d3-b85e-8fdc6a59d1d5",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "qZc7gjavQ60jXDSV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "When a customer gives a picture, then call this tool",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStorePGVector",
+      "typeVersion": 1.3,
+      "position": [
+        -96,
+        -256
+      ],
+      "id": "4afd0125-f2b6-4e8d-8085-e25d95dc4991",
+      "name": "Postgres PGVector Store1",
+      "credentials": {
+        "postgres": {
+          "id": "qZc7gjavQ60jXDSV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        -48
+      ],
+      "id": "7dae2c44-590c-4bea-adec-404102612b8b",
+      "name": "Embeddings Google Gemini1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "71GFeIFqhQsPZP2y",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -352,
+        -256
+      ],
+      "id": "4c0a9be7-b9fb-42ac-bf9d-2c145b950f28",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "71GFeIFqhQsPZP2y",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Postgres PGVector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Postgres PGVector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Postgres PGVector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres PGVector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings Google Gemini1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Postgres PGVector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "3585c27c-aeab-49a7-a89f-d1b1ab770b08",
+  "triggerCount": 2,
+  "shared": [
+    {
+      "updatedAt": "2025-12-13T15:01:22.902Z",
+      "createdAt": "2025-12-13T15:01:22.902Z",
+      "role": "workflow:owner",
+      "workflowId": "HnyZpqDo5CvVEkKj",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "tags": []
+}
