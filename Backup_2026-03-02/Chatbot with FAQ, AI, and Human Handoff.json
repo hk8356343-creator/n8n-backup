@@ -1,0 +1,838 @@
+{
+  "updatedAt": "2025-12-30T17:44:51.000Z",
+  "createdAt": "2025-12-30T15:10:01.111Z",
+  "id": "TpQbvf5jcqshA5tH",
+  "name": "Chatbot with FAQ, AI, and Human Handoff",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chatbot-webhook",
+        "options": {}
+      },
+      "id": "2c1dd1db-03f0-47c6-be3c-9a57176bcb44",
+      "name": "Receive Customer Message",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -864,
+        160
+      ],
+      "webhookId": "8eb8e9be-b6e4-49ff-9cfd-efce2186b73e"
+    },
+    {
+      "parameters": {},
+      "id": "569f1a73-4b67-419c-bb8b-b23f3cbd5998",
+      "name": "AI - Analyze & Answer",
+      "type": "n8n-nodes-base. openAi",
+      "typeVersion": 3,
+      "position": [
+        -608,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse AI response\nlet analysis = {\n  can_answer: false,\n  confidence:  0,\n  answer:  'Unable to determine',\n  reason: ''\n};\n\ntry {\n  const content = $json.message.content[0]. text;\n  analysis = JSON.parse(content);\n} catch (e) {\n  console.error('Parse error:', e);\n  analysis. confidence = 0;  // Low confidence if error\n}\n\nreturn {\n  ... item,\n  customer_message: $json.body.message,\n  customer_email: $json.body.email,\n  customer_name: $json.body.name,\n  can_answer: analysis.can_answer,\n  confidence: analysis. confidence,\n  bot_answer: analysis.answer,\n  confidence_reason: analysis.reason,\n  needs_handoff: analysis.confidence < 70  // Handoff if <70% confident\n};"
+      },
+      "id": "75dadf78-b477-4ee9-8d77-00e50138dba5",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.needs_handoff }}",
+              "operation": "equals",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "cc372fda-40c0-4845-a8f0-3a32366b5f27",
+      "name": "Does This Need Handoff?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPPORT_SYSTEM_API }}/tickets/create",
+        "authentication": "basicAuth",
+        "options": {}
+      },
+      "id": "3ddc64ac-fbe6-49d1-8d85-e6df8320c9de",
+      "name": "Create Support Ticket",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "options": {}
+      },
+      "id": "b6dc6c99-f495-473b-8bf0-80453c17fc1b",
+      "name": "Alert Support Team on Slack",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        0,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "toEmail": "{{ $json.customer_email }}",
+        "subject": "We're Connecting You With Support",
+        "options": {}
+      },
+      "id": "5b11d365-7edd-4595-a9fe-ecbc8a99c4f4",
+      "name": "Email Customer (Handoff)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [
+        0,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "toEmail": "{{ $json.customer_email }}",
+        "subject": "Your Question:  {{ $json.customer_message | slice(0, 50) }}",
+        "options": {}
+      },
+      "id": "27548044-ddff-4709-810d-088158b903fa",
+      "name": "Email Customer (Bot Answer)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [
+        160,
+        400
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "c681a0dd-b774-4612-91ca-f798b590d9da",
+      "name": "Log to Analytics",
+      "type": "n8n-nodes-base. httpRequest",
+      "typeVersion": 4,
+      "position": [
+        160,
+        560
+      ]
+    },
+    {
+      "parameters": {},
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [
+        992,
+        80
+      ],
+      "id": "ba26264a-0aae-48d1-a31e-a53bdf5225db"
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "jsonParameters": true,
+        "options": {}
+      },
+      "name": "AI Response",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        80
+      ],
+      "id": "45ef9504-6cc3-4f2f-abb2-e89fa18c1c82"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json[\"message\"] }}",
+              "operation": "contains",
+              "value2": "human"
+            }
+          ]
+        }
+      },
+      "name": "Check Handoff",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        80
+      ],
+      "id": "61771fb4-4439-43eb-a623-ebfd22f92c98"
+    },
+    {
+      "parameters": {
+        "channel": "human-support",
+        "text": "Customer requests human agent mid-chat: {{$json[\"message\"]}}",
+        "otherOptions": {},
+        "attachments": []
+      },
+      "name": "Escalate to Human (Slack)",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [
+        1888,
+        176
+      ],
+      "id": "64a367b2-6921-4074-a257-f04a0939e874"
+    },
+    {
+      "parameters": {
+        "chatId": "={{$json[\"chat_id\"]}}",
+        "text": "This is an automated response from the bot: {{$node[\"AI Response\"].json[\"choices\"][0][\"message\"][\"content\"]}}",
+        "additionalFields": {}
+      },
+      "name": "Reply to Customer",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        1888,
+        -32
+      ],
+      "id": "bbb33e19-e506-4fcf-b9b5-cae7d1f8205e",
+      "webhookId": "2afc8ee0-8619-43cb-ac13-40314c144e9a"
+    },
+    {
+      "parameters": {
+        "additionalFields": {}
+      },
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [
+        -480,
+        1984
+      ],
+      "id": "17d9f7df-0cf4-42d2-8956-7a35279f1c37",
+      "webhookId": "771a7c3a-a45e-405e-a218-d9914ae4d244"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json[\"message\"] }}",
+              "operation": "contains",
+              "value2": "human"
+            }
+          ]
+        }
+      },
+      "name": "Check Handoff Trigger",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -128,
+        1984
+      ],
+      "id": "dbf7f02e-da7c-4c17-84a7-f81a6e2533e2"
+    },
+    {
+      "parameters": {
+        "authentication": "predefinedCredentialType",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "jsonParameters": true,
+        "options": {}
+      },
+      "name": "Generate AI Response",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 1,
+      "position": [
+        128,
+        1872
+      ],
+      "id": "3f6bf195-3848-448b-b1c7-cb9a4ba93b12"
+    },
+    {
+      "parameters": {
+        "chatId": "={{$json[\"chatId\"]}}",
+        "text": "This is an automated response from the bot: {{$node[\"Generate AI Response\"].json[\"choices\"][0][\"message\"][\"content\"]}}",
+        "additionalFields": {}
+      },
+      "name": "Reply with AI Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [
+        432,
+        1872
+      ],
+      "id": "a196275d-e14c-459e-9ed3-97b4bbaaf512",
+      "webhookId": "c56b524a-b950-47c9-9788-d7af7114990c"
+    },
+    {
+      "parameters": {
+        "channel": "support-team",
+        "text": "Urgent handoff requested. Customer said: {{$json[\"message\"]}}",
+        "otherOptions": {},
+        "attachments": []
+      },
+      "name": "Escalate to Human (Slack)1",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 1,
+      "position": [
+        432,
+        2080
+      ],
+      "id": "ee1f61e9-d0e7-4783-9699-90e94b04e099"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat-inbound",
+        "options": {}
+      },
+      "id": "e95d9807-4c4f-41c6-a071-c0c5bbc110e2",
+      "name": "Chat Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        2144,
+        1632
+      ],
+      "webhookId": "5d9ddc10-a475-4abe-89a1-7677665d2e28"
+    },
+    {
+      "parameters": {},
+      "id": "1eb5dd22-22fc-4665-8162-4ae920923e26",
+      "name": "Preprocess Message",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 2,
+      "position": [
+        2352,
+        1632
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO chat_messages (conversation_id, sender_type, message_text, channel, created_at, meta)\nVALUES ($1, 'user', $2, $3, NOW(), $4);",
+        "additionalFields": {}
+      },
+      "id": "e70e911f-dcc6-4106-aa58-e710d98043af",
+      "name": "Store Incoming Message",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        2544,
+        1504
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "602befdc-c837-4e21-9cbc-420851cd2343",
+      "name": "FAQ Check",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 2,
+      "position": [
+        2752,
+        1632
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "e4c3965f-1f27-412d-a977-8010ee10909f",
+      "name": "IF FAQ Match",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        2944,
+        1632
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "5580e3e4-5b82-417a-8c55-7959b66045af",
+      "name": "Set FAQ Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        3152,
+        1504
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO chat_messages (conversation_id, sender_type, message_text, channel, created_at, meta)\nVALUES ($1, 'bot', $2, $3, NOW(), $4);",
+        "additionalFields": {}
+      },
+      "id": "255f8e0d-ede2-4b60-a970-7dda3b3270ba",
+      "name": "Store FAQ Response",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        3344,
+        1504
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.messaging-platform.example.com/send",
+        "options": {}
+      },
+      "id": "e2dbac03-a040-4f3e-8c8a-772faeb53fa5",
+      "name": "Output to Messaging Platform",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        3536,
+        1632
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "e308a932-f7aa-4e3f-9697-120f318e92eb",
+      "name": "Handoff Check",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 2,
+      "position": [
+        3344,
+        1744
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "c4559387-43f9-4d4b-b613-e819f9a13a10",
+      "name": "IF Need Human",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        3600,
+        1856
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "0780429c-eddb-4218-ac93-3b05d0bb2e34",
+      "name": "Set AI Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        3744,
+        1632
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO chat_messages (conversation_id, sender_type, message_text, channel, created_at, meta)\nVALUES ($1, 'bot', $2, $3, NOW(), $4);",
+        "additionalFields": {}
+      },
+      "id": "46824790-7625-4fbb-a51b-0b138e3a942c",
+      "name": "Store AI Response",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        3952,
+        1632
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "56a1b253-dbce-4a35-9cc2-ae4c2687fa32",
+      "name": "Set Handoff Message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        3744,
+        1824
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://helpdesk.example.com/handoff",
+        "options": {}
+      },
+      "id": "059b582b-1391-4062-9cc7-92043e721fad",
+      "name": "Notify Human Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        3952,
+        1824
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO chat_messages (conversation_id, sender_type, message_text, channel, created_at, meta)\nVALUES ($1, 'system', $2, $3, NOW(), $4);",
+        "additionalFields": {}
+      },
+      "id": "72e57eab-87c6-482d-a63e-fe746a5969c3",
+      "name": "Store Handoff Message",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        4144,
+        1824
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "human-reply",
+        "options": {}
+      },
+      "id": "993b1982-2d24-442e-8f21-ba31949dcca2",
+      "name": "Human Agent Reply",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        2832,
+        2176
+      ],
+      "webhookId": "613b137f-4809-46a0-841e-4d036a650936"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "fbb01e81-8bd0-46f2-b8c5-38673cbfc7c6",
+      "name": "Set Human Reply",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        3152,
+        2176
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "INSERT INTO chat_messages (conversation_id, sender_type, message_text, channel, created_at, meta)\nVALUES ($1, 'human', $2, $3, NOW(), $4);",
+        "additionalFields": {}
+      },
+      "id": "a82898a8-dfd2-40cc-9586-6b11c5beea70",
+      "name": "Store Human Reply",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [
+        3360,
+        2176
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "b32a0b5b-9fd2-4556-913a-898e7d99c8ab",
+      "name": "Prepare Human Outbound",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        3584,
+        2176
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "48d82ac3-c824-48d0-9c02-2a72757636af",
+      "name": "Optional Resume AI Flag",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        3840,
+        2224
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "3b5e2cc6-0210-47e5-8574-f4bca1c0c1f8",
+      "name": "AI Response1",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 2,
+      "position": [
+        3152,
+        1744
+      ],
+      "credentials": {}
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Response": {
+      "main": [
+        [
+          {
+            "node": "Check Handoff",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Handoff": {
+      "main": [
+        [
+          {
+            "node": "Reply to Customer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Escalate to Human (Slack)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Handoff Trigger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Handoff Trigger": {
+      "main": [
+        [
+          {
+            "node": "Generate AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Escalate to Human (Slack)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate AI Response": {
+      "main": [
+        [
+          {
+            "node": "Reply with AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF FAQ Match": {
+      "main": [
+        [
+          {
+            "node": "Set FAQ Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set FAQ Response": {
+      "main": [
+        [
+          {
+            "node": "Store FAQ Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store FAQ Response": {
+      "main": [
+        [
+          {
+            "node": "Output to Messaging Platform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Need Human": {
+      "main": [
+        [
+          {
+            "node": "Set Handoff Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set AI Response": {
+      "main": [
+        [
+          {
+            "node": "Store AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store AI Response": {
+      "main": [
+        [
+          {
+            "node": "Output to Messaging Platform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Handoff Message": {
+      "main": [
+        [
+          {
+            "node": "Notify Human Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notify Human Agent": {
+      "main": [
+        [
+          {
+            "node": "Store Handoff Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Handoff Message": {
+      "main": [
+        [
+          {
+            "node": "Output to Messaging Platform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Human Agent Reply": {
+      "main": [
+        [
+          {
+            "node": "Set Human Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Human Reply": {
+      "main": [
+        [
+          {
+            "node": "Store Human Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Human Reply": {
+      "main": [
+        [
+          {
+            "node": "Prepare Human Outbound",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Human Outbound": {
+      "main": [
+        [
+          {
+            "node": "Output to Messaging Platform",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "331bbb31-f6a2-4caa-b6cf-e335fd757325",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2025-12-30T15:10:01.117Z",
+      "createdAt": "2025-12-30T15:10:01.117Z",
+      "role": "workflow:owner",
+      "workflowId": "TpQbvf5jcqshA5tH",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "tags": []
+}
