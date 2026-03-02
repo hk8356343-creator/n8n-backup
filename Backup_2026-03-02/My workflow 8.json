@@ -1,0 +1,173 @@
+{
+  "updatedAt": "2026-02-06T17:44:07.000Z",
+  "createdAt": "2026-01-29T15:34:14.647Z",
+  "id": "TswBgl2A64e9r7PH",
+  "name": "My workflow 8",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -432,
+        -112
+      ],
+      "id": "c5867700-d5f7-4382-92ad-005b80da205e",
+      "name": "When chat message received",
+      "webhookId": "c5b970d3-37da-4f3b-a9ed-a25c31c1c7ef"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful assistant.\n\n-Use google sheet for qruery"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -224,
+        -112
+      ],
+      "id": "05362d8e-568e-4ec2-a921-58f099ec8c0a",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        176
+      ],
+      "id": "3e4fd247-3284-422f-85c1-e59e7d06329f",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "5h1EDdb5qUKmhLT3",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Search the FAQ database for answers to customer questions. Use this tool for ANY question about products, shipping, returns, payments, or company policies. The tool returns all FAQ entries - review them carefully to find relevant answers.",
+        "documentId": {
+          "__rl": true,
+          "value": "1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4",
+          "mode": "list",
+          "cachedResultName": "FAQ for Export-Pi",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "FAQ's",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        32,
+        112
+      ],
+      "id": "deb4ade8-195c-4d38-b4e5-6b6016c14e36",
+      "name": "FAQ",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -128,
+        192
+      ],
+      "id": "bb078f07-d81c-45fd-9993-833de3bfc0ee",
+      "name": "Simple Memory"
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FAQ": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "50cb0260-8f80-4834-a591-e9c4f53d5893",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-01-29T15:34:14.650Z",
+      "createdAt": "2026-01-29T15:34:14.650Z",
+      "role": "workflow:owner",
+      "workflowId": "TswBgl2A64e9r7PH",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "tags": []
+}
