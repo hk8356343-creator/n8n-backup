@@ -1,0 +1,162 @@
+{
+  "updatedAt": "2026-02-09T13:42:03.000Z",
+  "createdAt": "2026-02-08T11:26:17.285Z",
+  "id": "fPCseMtJbXnQTWlJ",
+  "name": "My workflow 12",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Web Form",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "What Is Your First Name?",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "What Is Your Last Name?",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Your Email",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "What is the purpose ",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "to buy "
+                  },
+                  {
+                    "option": "just scrole"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        -416,
+        -144
+      ],
+      "id": "aca8de8a-6455-45ec-bf50-22cba86b0174",
+      "name": "On form submission",
+      "webhookId": "8058eacf-4949-42a0-8be8-f50f409e0ecb"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1CKtpBooGArmEz8h-p50RFr9J0_fv8Bb0hZTQbm47ImE",
+          "mode": "list",
+          "cachedResultName": "Untitled spreadsheet",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CKtpBooGArmEz8h-p50RFr9J0_fv8Bb0hZTQbm47ImE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1CKtpBooGArmEz8h-p50RFr9J0_fv8Bb0hZTQbm47ImE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json['What Is Your First Name?'] }} {{ $json['What Is Your Last Name?'] }}"
+          },
+          "matchingColumns": [
+            "Name"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -160,
+        -144
+      ],
+      "id": "a18a475e-80fe-476e-ad53-dd261bf4a1b6",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "On form submission": [
+      {
+        "json": {
+          "What Is Your First Name?": "Hasanuzzaman",
+          "What Is Your Last Name?": "Hasan",
+          "Your Email": "1125681877@student.wub.edu.bd",
+          "What is the purpose ": "just scrole",
+          "submittedAt": "2026-02-08T14:52:19.207+01:00",
+          "formMode": "test"
+        }
+      }
+    ]
+  },
+  "versionId": "19f91a2e-5210-4518-a00b-d6ab0a8321c3",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-02-08T11:26:17.288Z",
+      "createdAt": "2026-02-08T11:26:17.288Z",
+      "role": "workflow:owner",
+      "workflowId": "fPCseMtJbXnQTWlJ",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "tags": []
+}
