@@ -1,0 +1,92 @@
+{
+  "updatedAt": "2026-01-29T13:05:46.000Z",
+  "createdAt": "2026-01-29T13:04:04.122Z",
+  "id": "HuHSClg3KYW142QC",
+  "name": "My workflow 7",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -480,
+        -80
+      ],
+      "id": "51be35a4-534e-4ac7-b088-a5fa617e2d29",
+      "name": "When chat message received",
+      "webhookId": "1b464d3b-ca67-42f3-a294-470f4f36b45a"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4",
+          "mode": "list",
+          "cachedResultName": "FAQ for Export-Pi",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "FAQ's",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -272,
+        -80
+      ],
+      "id": "55092ec5-bcac-4ed3-8326-f92157dd90cb",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "f696975b-1373-4e02-8f3f-577b067e6f1e",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-01-29T13:04:04.126Z",
+      "createdAt": "2026-01-29T13:04:04.126Z",
+      "role": "workflow:owner",
+      "workflowId": "HuHSClg3KYW142QC",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
