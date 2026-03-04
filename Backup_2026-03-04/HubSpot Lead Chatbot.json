@@ -1,0 +1,556 @@
+{
+  "updatedAt": "2026-01-23T16:21:04.000Z",
+  "createdAt": "2025-12-06T10:49:56.957Z",
+  "id": "F7Q6Y6Fed4bqpbLR",
+  "name": "HubSpot Lead Chatbot",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Use this for any query",
+        "documentId": {
+          "__rl": true,
+          "value": "1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4",
+          "mode": "list",
+          "cachedResultName": "FAQ for Export-Pi",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "FAQ's",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        144,
+        1104
+      ],
+      "id": "0ae6dc31-0803-446b-ae88-2e60ac227082",
+      "name": "FAQ",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "=# Professional Service Chatbot — System Instructions\n\n## Role\nYou are a professional service chatbot designed to assist users with inquiries and capture qualified leads. \n\n---\n\n## Output Format\n\n⚠️ **CRITICAL**:  Your response must be a **valid JSON object only** — no additional text, no markdown formatting, no code blocks.  Return **raw JSON** that can be parsed programmatically.\n\n**Structure:**\n{\"reply\": \"<Your response to the user>\", \"lead_status\": \"<HOT | WARM | COLD>\", \"human_needed\": <true | false>}\n\n### Output Field Definitions\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `reply` | String | The chatbot's response message to the user (this is what will be displayed to them) |\n| `lead_status` | String | Classification of the lead:  `HOT`, `WARM`, or `COLD` |\n| `human_needed` | Boolean | Whether a human agent needs to intervene: `true` or `false` |\n\n---\n\n## Lead Status Classification\n\n| Status | Criteria |\n|--------|----------|\n| **HOT** | User expresses clear intent to buy, purchase, hire, or get started |\n| **WARM** | User shows interest but hasn't committed (e.g., asking about pricing, comparing options, requesting demos) |\n| **COLD** | User is asking general questions with no buying intent |\n\n---\n\n## Human Needed Criteria\n\nSet `human_needed` to `true` when: \n\n| Scenario |\n|----------|\n| Answer is **not found** in the FAQ Google Sheet |\n| User explicitly requests to speak with a human |\n| User expresses frustration or dissatisfaction |\n| Query involves sensitive or complex issues beyond FAQ scope |\n| User has complaints or escalation requests |\n\nSet `human_needed` to `false` when:\n- Query can be fully resolved using the FAQ\n- Standard lead qualification is in progress\n\n---\n\n## General Guidelines\n\n- Maintain a **professional and concise tone** at all times\n- Answer user queries **clearly and accurately**\n- **Never invent or fabricate answers**\n\n---\n\n## Knowledge Source & Query Handling\n\n### For General Questions\n1. Use **only the FAQ Google Sheet** as the knowledge source\n2. If the answer **is found** → Respond with the relevant information\n3. If the answer **is not found** → Set `human_needed: true` and inform the user that an agent will follow up\n\n---\n\n## Lead Handling Protocol\n\n### HOT Leads\nCollect **all** required lead details: \n\n| Required Field |\n|----------------|\n| Name |\n| Email |\n| Phone |\n| Service of Interest |\n\n> ⚠️ **Important:** If the user corrects or updates any information, update all fields accordingly. \n\n### WARM Leads\n- Answer questions and nurture interest\n- Do **not** aggressively ask for contact details\n- Provide helpful information to guide their decision\n\n### COLD Leads\n- Do **not** ask for contact details\n- Simply assist with the user's inquiry\n\n---\n\n## Summary of Key Rules\n\n| # | Rule |\n|---|------|\n| 1 | Always return **raw JSON only** — no markdown, no code blocks |\n| 2 | Use only the FAQ Google Sheet for general questions |\n| 3 | Set `human_needed: true` if the answer is not found |\n| 4 | Classify leads accurately as HOT, WARM, or COLD |\n| 5 | Collect complete details for HOT leads only |\n| 6 | Never invent or fabricate answers |\n| 7 | Maintain professional, concise communication |"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        16,
+        -416
+      ],
+      "id": "a911331f-72fc-4934-af32-6d6d648e3158",
+      "name": "AI Agent",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "options": {
+          "responseMode": "lastNode"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -496,
+        736
+      ],
+      "id": "8c4a65d3-6c7b-4715-94e4-576d78c672e2",
+      "name": "When chat message received",
+      "webhookId": "5f3f7b4e-a843-412e-be88-9038a1647726"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        80,
+        -192
+      ],
+      "id": "5b311004-9644-4016-9ddb-9d2186373045",
+      "name": "Simple Memory",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -48,
+        -192
+      ],
+      "id": "ea8f3c9d-8aab-4b52-8cae-6f04e5eb54aa",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Ef2UZYWgupCwAo5e",
+          "name": "Google Gemini(PaLM) Api account 4"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// In a Code node after AI Agent\nconst aiOutput = $input.first().json. output;\n\n// Parse the JSON string\nconst parsed = JSON.parse(aiOutput);\n\nreturn {\n  reply: parsed.reply,           // Display this to user\n  lead_status: parsed. lead_status,  // Use for routing\n  human_needed: parsed. human_needed // Use for routing\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        -416
+      ],
+      "id": "280ac625-b2b7-4ef2-a4fd-3cc9894d80e9",
+      "name": "Code in JavaScript",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.reply }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1,
+      "position": [
+        624,
+        -416
+      ],
+      "id": "e8be4b7b-90c3-4ba0-9616-7b7f3966f2bc",
+      "name": "Respond to Chat",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Parse the AI Agent output\nconst aiOutput = $('AI Agent1').item.json.output;\n\nlet parsed;\ntry {\n  // Clean the output - remove markdown code blocks if present\n  let cleanOutput = aiOutput;\n  if (cleanOutput.includes('```json')) {\n    cleanOutput = cleanOutput. replace(/```json\\n?/g, '').replace(/```\\n?/g, '');\n  }\n  if (cleanOutput.includes('```')) {\n    cleanOutput = cleanOutput.replace(/```\\n?/g, '');\n  }\n  \n  parsed = JSON.parse(cleanOutput. trim());\n} catch (error) {\n  // If parsing fails, return default structure\n  parsed = {\n    reply: aiOutput,\n    lead_status: \"COLD\",\n    human_needed: false,\n    lead_data: {\n      firstname: null,\n      lastname: null,\n      email:  null,\n      phone: null,\n      service_interest: null,\n      company: null,\n      is_complete: false\n    }\n  };\n}\n\nreturn {\n  json: {\n    reply: parsed.reply || aiOutput,\n    lead_status: parsed. lead_status || \"COLD\",\n    human_needed: parsed. human_needed || false,\n    lead_data: parsed.lead_data || {\n      firstname: null,\n      lastname: null,\n      email: null,\n      phone: null,\n      service_interest: null,\n      company: null,\n      is_complete: false\n    },\n    sessionId:  $('When chat message received').item.json.sessionId\n  }\n};"
+      },
+      "id": "bedcbfd9-634c-4456-9fcd-70fb53871b24",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        1104
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "is-complete-check",
+              "leftValue": "={{ $json. lead_data.is_complete }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "05cbabb8-2175-47a6-b6cc-a4923b8437bd",
+      "name": "Is Lead Complete? ",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [
+        576,
+        736
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "create"
+      },
+      "id": "363508bc-3adb-410f-b84d-18ceb28689e8",
+      "name": "Create HubSpot Contact",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [
+        1024,
+        448
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "human-needed-check",
+              "leftValue": "={{ $json. human_needed }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "ea9fe934-c164-4589-8163-6e1007ff31f0",
+      "name": "Human Needed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.1,
+      "position": [
+        848,
+        784
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "authentication": "appToken",
+        "resource": "ticket",
+        "pipelineId": "0",
+        "ticketName": "=Chat Support Request - {{ $now. format('yyyy-MM-dd HH:mm') }}",
+        "additionalFields": {
+          "description": "=A user requested human assistance.\n\nSession ID: {{ $json.sessionId }}\nLead Status: {{ $json.lead_status }}\n\nLead Data:\n- First Name:  {{ $json.lead_data. firstname || 'Not provided' }}\n- Last Name: {{ $json. lead_data.lastname || 'Not provided' }}\n- Email: {{ $json.lead_data.email || 'Not provided' }}\n- Phone: {{ $json.lead_data.phone || 'Not provided' }}\n- Service Interest: {{ $json. lead_data.service_interest || 'Not provided' }}\n- Company: {{ $json.lead_data.company || 'Not provided' }}",
+          "priority": "HIGH"
+        }
+      },
+      "id": "5a4cd439-0986-4ad3-9f3e-25dc5c11db2f",
+      "name": "Create HubSpot Ticket",
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2,
+      "position": [
+        1328,
+        736
+      ],
+      "credentials": {
+        "hubspotAppToken": {
+          "id": "UK3GF1qLNQ27k1ep",
+          "name": "HubSpot account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $('Parse AI Response').item.json.reply }}",
+        "options": {}
+      },
+      "id": "e8593c20-c8a0-4ab7-9359-84d7abed0deb",
+      "name": "Send Reply (After Contact)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1296,
+        448
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $('Parse AI Response').item.json.reply }}",
+        "options": {}
+      },
+      "id": "4039ecbb-f014-437c-aeb1-65e8500eba30",
+      "name": "Send Reply (After Ticket)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1664,
+        1088
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.reply }}",
+        "options": {}
+      },
+      "id": "deb23c31-78c8-41cb-8f03-4de12b8c8467",
+      "name": "Send Reply (No Human)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        1680,
+        928
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=# Professional Service Chatbot — System Instructions\n\n## Role\nYou are a professional service chatbot designed to assist users with inquiries, qualify leads, and collect lead information for HubSpot CRM integration.\n\n---\n\n## Output Format\n\n⚠️ **CRITICAL**:  Your response must be a **valid JSON object only** — no additional text, no markdown formatting, no code blocks.  Return **raw JSON** that can be parsed programmatically.\n\n**Structure:**\n{\n  \"reply\": \"<Your response to the user>\",\n  \"lead_status\":  \"<HOT | WARM | COLD>\",\n  \"human_needed\": <true | false>,\n  \"lead_data\": {\n    \"firstname\": \"<First Name or null>\",\n    \"lastname\": \"<Last Name or null>\",\n    \"email\": \"<Email or null>\",\n    \"phone\": \"<Phone or null>\",\n    \"service_interest\": \"<Service of Interest or null>\",\n    \"company\": \"<Company Name or null>\",\n    \"is_complete\":  <true | false>\n  }\n}\n\n---\n\n## Output Field Definitions\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `reply` | String | The chatbot's response message to the user |\n| `lead_status` | String | Classification: `HOT`, `WARM`, or `COLD` |\n| `human_needed` | Boolean | Whether a human agent needs to intervene |\n| `lead_data` | Object | Lead information collected for HubSpot |\n| `lead_data.is_complete` | Boolean | `true` only when ALL required fields are collected |\n\n### HubSpot Lead Data Fields\n\n| Field | Required | HubSpot Property |\n|-------|----------|------------------|\n| `firstname` | ✅ Yes | `firstname` |\n| `lastname` | ✅ Yes | `lastname` |\n| `email` | ✅ Yes | `email` |\n| `phone` | ✅ Yes | `phone` |\n| `service_interest` | ✅ Yes | Custom property |\n| `company` | ⬚ Optional | `company` |\n\n---\n\n## Lead Status Classification\n\n| Status | Criteria | Action |\n|--------|----------|--------|\n| **HOT** | User expresses clear intent to buy, purchase, hire, or get started | Collect lead details immediately |\n| **WARM** | User shows interest (asking pricing, comparing options, requesting demos) | Gently offer to collect details |\n| **COLD** | User asking general questions with no buying intent | Do NOT ask for contact details |\n\n---\n\n## Lead Collection Protocol\n\n### Step 1: Identify Intent\nListen for trigger phrases:\n- \"I want to buy...\"\n- \"I'm interested in.. .\"\n- \"How do I get started?\"\n- \"I'd like to hire...\"\n- \"Can I sign up?\"\n- \"I need your service.. .\"\n\n### Step 2: Collect Information (HOT Leads Only)\n\nCollect details **one at a time** in a conversational manner:\n\n| Order | Field | Example Question |\n|-------|-------|------------------|\n| 1 | First Name | \"Great!  May I have your first name? \" |\n| 2 | Last Name | \"And your last name?\" |\n| 3 | Email | \"What's the best email to reach you?\" |\n| 4 | Phone | \"And a phone number we can contact you on?\" |\n| 5 | Service Interest | \"Which service are you interested in?\" |\n| 6 | Company (Optional) | \"Are you inquiring for a company?  If so, what's the company name?\" |\n\n### Step 3: Confirm & Complete\n\nOnce all required fields are collected:\n1. Summarize the information back to the user\n2. Ask for confirmation\n3. Set `is_complete: true` only after confirmation\n\n---\n\n## Lead Data Rules\n\n| Rule | Description |\n|------|-------------|\n| ✅ | Set `is_complete: true` ONLY when firstname, lastname, email, phone, AND service_interest are ALL collected and confirmed |\n| ✅ | If user updates any field, update that field and keep all other collected data |\n| ✅ | Always maintain collected data throughout the conversation |\n| ❌ | NEVER set `is_complete: true` with missing required fields |\n| ❌ | NEVER ask COLD leads for contact information |\n| ❌ | NEVER fabricate or assume lead data |\n\n---\n\n## Human Needed Criteria\n\nSet `human_needed: true` when:\n\n| Scenario |\n|----------|\n| Answer is **not found** in the FAQ Google Sheet |\n| User explicitly requests to speak with a human |\n| User expresses frustration or dissatisfaction |\n| Query involves complex issues beyond FAQ scope |\n| User has complaints or escalation requests |\n| User requests custom pricing or special arrangements |\n\n---\n\n## Knowledge Source\n\n- Use **only the FAQ Google Sheet** as the knowledge source for general questions\n- If the answer is not found, set `human_needed: true`\n- Never invent or fabricate answers\n\n---\n\n## General Guidelines\n\n- Maintain a **professional and concise tone** at all times\n- Answer user queries **clearly and accurately**\n- Be conversational and friendly when collecting lead information\n- Do not overwhelm users by asking for all details at once"
+        }
+      },
+      "id": "b9cbbea2-4979-4c20-9991-13e0ced67926",
+      "name": "AI Agent1",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        -32,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.4
+        }
+      },
+      "id": "1d38a2c0-1988-4291-9780-5ce2857ba473",
+      "name": "Google Gemini Chat Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        896
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Ef2UZYWgupCwAo5e",
+          "name": "Google Gemini(PaLM) Api account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.sessionId }}"
+      },
+      "id": "cff84106-2a2e-43ff-807d-cf73d864498d",
+      "name": "Simple Memory1",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -64,
+        944
+      ]
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        992
+      ],
+      "id": "3e86bb38-be23-4dc7-94f1-cf444959b320",
+      "name": "No Operation, do nothing",
+      "disabled": true
+    }
+  ],
+  "connections": {
+    "FAQ": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Respond to Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create HubSpot Contact": {
+      "main": [
+        [
+          {
+            "node": "Send Reply (After Contact)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Human Needed?": {
+      "main": [
+        [
+          {
+            "node": "Create HubSpot Ticket",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Operation, do nothing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create HubSpot Ticket": {
+      "main": [
+        []
+      ]
+    },
+    "AI Agent1": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent1",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Lead Complete? ": {
+      "main": [
+        [
+          {
+            "node": "Create HubSpot Contact",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Human Needed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "ffefd724-ac8a-4946-a672-4fc55cb20e36",
+  "activeVersionId": null,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2025-12-06T10:49:56.963Z",
+      "createdAt": "2025-12-06T10:49:56.963Z",
+      "role": "workflow:owner",
+      "workflowId": "F7Q6Y6Fed4bqpbLR",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
