@@ -1,0 +1,30 @@
+{
+  "updatedAt": "2025-12-24T10:33:58.928Z",
+  "createdAt": "2025-12-24T10:33:58.928Z",
+  "id": "1APIOaXVCOOofi6M",
+  "name": "to crate vector database",
+  "active": false,
+  "isArchived": false,
+  "nodes": [],
+  "connections": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "df5b0205-f8a9-4fc6-a1a0-c95ee833e59c",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2025-12-24T10:33:58.931Z",
+      "createdAt": "2025-12-24T10:33:58.931Z",
+      "role": "workflow:owner",
+      "workflowId": "1APIOaXVCOOofi6M",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
