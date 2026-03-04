@@ -1,0 +1,218 @@
+{
+  "updatedAt": "2026-02-06T17:45:01.000Z",
+  "createdAt": "2026-02-01T12:57:28.608Z",
+  "id": "tvF3gxe0leiClip1",
+  "name": "My workflow 9",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -368,
+        -96
+      ],
+      "id": "13448e8e-4b10-4421-92fe-243c8e6e612b",
+      "name": "When chat message received",
+      "webhookId": "9a335aff-637f-490d-a43f-c903db85772a"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput }}",
+        "options": {
+          "systemMessage": "=You are Export Pi’s customer support AI assistant.\n\nYou have access to two tools:\n1. FAQ tool – searches questions and answers from Google Sheets\n2. Escalated tool – logs unresolved cases\n\nYou will receive a customer message and FAQ data.\n\nRules:\n1. Understand user intent, even if short, informal, misspelled, Bangla, or Banglish.\n2. Translate Bangla/Banglish to English and clean the text.\n3. If message is greeting or small talk, reply normally and do not use any tool.\n4. Query the FAQ tool.\n5. If similarity ≥60%, return the FAQ answer exactly and set need_human = false.\n6. If the message is irrelevant, off-topic, or unrelated to Export Pi’s business, do NOT answer it. Politely redirect the user back to Export Pi’s products, services, or support topics. Do not use any tool in this case.\n7. If no FAQ match:\n   - First, politely ask the user for any missing information: **Name** and **Email or Mobile (optional)**.\n   - Only after receiving these details, create a **new row** in the Escalated tool with all fields filled (Name, Email/Mobile, Customer Message, Bot Reply). Never leave any field blank.\n   - Then inform the user that a human agent will contact them.\n   - If subsequent unknown messages arrive, do **not ask for details again**; just log the new message as a new row.\n\nDecision Logic:\n- FAQ answer found → need_human = false\n- FAQ answer not found → need_human = true and create a new Escalated row\n- Greeting only → need_human = false\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -160,
+        -96
+      ],
+      "id": "c1586931-1853-4fc6-a131-e84b07cb74e7",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -160,
+        80
+      ],
+      "id": "eea15427-148b-4bcb-a822-a106947c55e1",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        112
+      ],
+      "id": "b132e396-6415-4422-b536-17dea40bf46c",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "5h1EDdb5qUKmhLT3",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1puUD3QY6-rb2uAy80d69285yML1RLZcQKtIuw61TCV4",
+          "mode": "list",
+          "cachedResultName": "ChatBot Info",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1puUD3QY6-rb2uAy80d69285yML1RLZcQKtIuw61TCV4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 644787786,
+          "mode": "list",
+          "cachedResultName": "Escaleted Message",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1puUD3QY6-rb2uAy80d69285yML1RLZcQKtIuw61TCV4/edit#gid=644787786"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        80
+      ],
+      "id": "d6708cfb-d6eb-4362-90e1-1f072491ac21",
+      "name": "Get row(s) in sheet in Google Sheets1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4",
+          "mode": "list",
+          "cachedResultName": "FAQ for Export-Pi",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "FAQ's",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        16,
+        112
+      ],
+      "id": "46f753bd-2e98-4026-9ab9-bd9ee6af2f6f",
+      "name": "FAQ",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FAQ": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "0bb2afb8-888a-47dd-abf0-88ce3c4f2ead",
+  "activeVersionId": null,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-02-01T12:57:28.611Z",
+      "createdAt": "2026-02-01T12:57:28.611Z",
+      "role": "workflow:owner",
+      "workflowId": "tvF3gxe0leiClip1",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
