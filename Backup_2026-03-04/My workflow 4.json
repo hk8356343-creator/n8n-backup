@@ -1,0 +1,139 @@
+{
+  "updatedAt": "2026-03-02T18:03:52.000Z",
+  "createdAt": "2025-12-28T12:40:10.688Z",
+  "id": "asZhuUTZYRJ7UdaZ",
+  "name": "My workflow 4",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "path": "agent-dashboard",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "0daf898f-09cc-4a96-af1e-6d4b1778e2be",
+      "name": "Agent Dashboard Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "e907bff5-4c17-40f1-81bb-964d8e31614e"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT id, session_id, message, created_at FROM pending_messages WHERE replied = false ORDER BY created_at DESC",
+        "options": {}
+      },
+      "id": "f4b115c4-4fc4-4447-970e-a82732517104",
+      "name": "Get All Pending Messages",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [
+        224,
+        0
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "qZc7gjavQ60jXDSV",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "html": "=<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"UTF-8\" />\n  <title>Live Agent Dashboard</title>\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n</head>\n<body>\n  <div class=\"container\">\n    <header>\n      <h1>🎧 Live Agent Dashboard</h1>\n      <p class=\"subtitle\">Pending Customer Messages</p>\n    </header>\n\n    <div class=\"stats\">\n      <div class=\"stat-card\">\n        <span class=\"stat-number\">{{ $json.length || 0 }}</span>\n        <span class=\"stat-label\">Pending Messages</span>\n      </div>\n    </div>\n\n    <div class=\"messages-container\">\n      {{ $json.length === 0 ? '<div class=\"no-messages\"><p>✅ No pending messages</p><p class=\"subtitle\">All caught up!</p></div>' : '' }}\n      \n      {{ $json.map((msg, index) => `\n        <div class=\"message-card\" id=\"message-${msg.id}\">\n          <div class=\"message-header\">\n            <span class=\"session-id\">Session: ${msg.session_id}</span>\n            <span class=\"timestamp\">${new Date(msg.created_at).toLocaleString()}</span>\n          </div>\n          <div class=\"message-content\">\n            <p>${msg.message}</p>\n          </div>\n          <div class=\"reply-section\">\n            <textarea \n              id=\"reply-${msg.id}\" \n              class=\"reply-input\" \n              placeholder=\"Type your reply here...\"\n              rows=\"3\"\n            ></textarea>\n            <button \n              class=\"send-btn\" \n              onclick=\"sendReply(${msg.id}, '${msg.session_id}')\"\n            >\n              Send Reply\n            </button>\n          </div>\n        </div>\n      `).join('') }}\n    </div>\n\n    <div class=\"refresh-info\">\n      <p>Auto-refreshing every 10 seconds</p>\n      <button class=\"refresh-btn\" onclick=\"location.reload()\">🔄 Refresh Now</button>\n    </div>\n  </div>\n</body>\n</html>\n\n<style>\n* {\n  margin: 0;\n  padding: 0;\n  box-sizing: border-box;\n}\n\nbody {\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;\n  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n  min-height: 100vh;\n  padding: 20px;\n}\n\n.container {\n  max-width: 1200px;\n  margin: 0 auto;\n}\n\nheader {\n  text-align: center;\n  color: white;\n  margin-bottom: 30px;\n}\n\nheader h1 {\n  font-size: 36px;\n  font-weight: bold;\n  margin-bottom: 10px;\n}\n\nheader .subtitle {\n  font-size: 18px;\n  opacity: 0.9;\n}\n\n.stats {\n  display: flex;\n  justify-content: center;\n  margin-bottom: 30px;\n}\n\n.stat-card {\n  background: white;\n  padding: 20px 40px;\n  border-radius: 12px;\n  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n}\n\n.stat-number {\n  font-size: 48px;\n  font-weight: bold;\n  color: #667eea;\n}\n\n.stat-label {\n  font-size: 14px;\n  color: #666;\n  margin-top: 5px;\n}\n\n.messages-container {\n  display: flex;\n  flex-direction: column;\n  gap: 20px;\n}\n\n.message-card {\n  background: white;\n  border-radius: 12px;\n  padding: 20px;\n  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);\n  transition: transform 0.2s;\n}\n\n.message-card:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);\n}\n\n.message-header {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 15px;\n  padding-bottom: 10px;\n  border-bottom: 2px solid #f0f0f0;\n}\n\n.session-id {\n  font-weight: bold;\n  color: #667eea;\n  font-size: 14px;\n}\n\n.timestamp {\n  font-size: 12px;\n  color: #999;\n}\n\n.message-content {\n  margin-bottom: 15px;\n}\n\n.message-content p {\n  font-size: 16px;\n  line-height: 1.6;\n  color: #333;\n}\n\n.reply-section {\n  display: flex;\n  flex-direction: column;\n  gap: 10px;\n}\n\n.reply-input {\n  width: 100%;\n  padding: 12px;\n  border: 2px solid #e0e0e0;\n  border-radius: 8px;\n  font-size: 14px;\n  font-family: inherit;\n  resize: vertical;\n  transition: border-color 0.2s;\n}\n\n.reply-input:focus {\n  outline: none;\n  border-color: #667eea;\n}\n\n.send-btn {\n  align-self: flex-end;\n  padding: 12px 24px;\n  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);\n  color: white;\n  border: none;\n  border-radius: 8px;\n  font-size: 14px;\n  font-weight: bold;\n  cursor: pointer;\n  transition: transform 0.2s, box-shadow 0.2s;\n}\n\n.send-btn:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);\n}\n\n.send-btn:active {\n  transform: translateY(0);\n}\n\n.no-messages {\n  background: white;\n  border-radius: 12px;\n  padding: 60px 20px;\n  text-align: center;\n  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);\n}\n\n.no-messages p {\n  font-size: 24px;\n  color: #333;\n  margin-bottom: 10px;\n}\n\n.no-messages .subtitle {\n  font-size: 16px;\n  color: #999;\n}\n\n.refresh-info {\n  text-align: center;\n  margin-top: 30px;\n  color: white;\n}\n\n.refresh-info p {\n  margin-bottom: 10px;\n  opacity: 0.9;\n}\n\n.refresh-btn {\n  padding: 10px 20px;\n  background: white;\n  color: #667eea;\n  border: none;\n  border-radius: 8px;\n  font-size: 14px;\n  font-weight: bold;\n  cursor: pointer;\n  transition: transform 0.2s;\n}\n\n.refresh-btn:hover {\n  transform: scale(1.05);\n}\n\n.success-message {\n  position: fixed;\n  top: 20px;\n  right: 20px;\n  background: #4caf50;\n  color: white;\n  padding: 15px 20px;\n  border-radius: 8px;\n  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);\n  animation: slideIn 0.3s ease-out;\n  z-index: 1000;\n}\n\n@keyframes slideIn {\n  from {\n    transform: translateX(400px);\n    opacity: 0;\n  }\n  to {\n    transform: translateX(0);\n    opacity: 1;\n  }\n}\n\n@media (max-width: 768px) {\n  header h1 {\n    font-size: 28px;\n  }\n  \n  .message-card {\n    padding: 15px;\n  }\n}\n</style>\n\n<script>\nconst WEBHOOK_BASE_URL = 'https://snake-test.app.n8n.cloud/webhook';\n\nasync function sendReply(messageId, sessionId) {\n  const replyInput = document.getElementById(`reply-${messageId}`);\n  const reply = replyInput.value.trim();\n  \n  if (!reply) {\n    alert('Please enter a reply');\n    return;\n  }\n  \n  try {\n    const response = await fetch(`${WEBHOOK_BASE_URL}/agent-reply`, {\n      method: 'POST',\n      headers: {\n        'Content-Type': 'application/json'\n      },\n      body: JSON.stringify({\n        messageId: messageId,\n        sessionId: sessionId,\n        reply: reply\n      })\n    });\n    \n    if (response.ok) {\n      showSuccessMessage('Reply sent successfully!');\n      \n      // Remove the message card from view\n      const messageCard = document.getElementById(`message-${messageId}`);\n      messageCard.style.transition = 'opacity 0.3s, transform 0.3s';\n      messageCard.style.opacity = '0';\n      messageCard.style.transform = 'translateX(100px)';\n      \n      setTimeout(() => {\n        messageCard.remove();\n        \n        // Check if there are no more messages\n        const messagesContainer = document.querySelector('.messages-container');\n        if (messagesContainer.children.length === 0) {\n          location.reload();\n        }\n      }, 300);\n    } else {\n      alert('Failed to send reply. Please try again.');\n    }\n  } catch (error) {\n    console.error('Error sending reply:', error);\n    alert('Error sending reply. Please check your connection.');\n  }\n}\n\nfunction showSuccessMessage(message) {\n  const successDiv = document.createElement('div');\n  successDiv.className = 'success-message';\n  successDiv.textContent = message;\n  document.body.appendChild(successDiv);\n  \n  setTimeout(() => {\n    successDiv.style.opacity = '0';\n    setTimeout(() => successDiv.remove(), 300);\n  }, 3000);\n}\n\n// Auto-refresh every 10 seconds\nsetInterval(() => {\n  location.reload();\n}, 10000);\n\nconsole.log('Live Agent Dashboard loaded');\n</script>"
+      },
+      "id": "ec2f8142-f32f-46ae-8e9f-ab71f9646ed5",
+      "name": "Build Agent Dashboard HTML",
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ $json.html }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html"
+              }
+            ]
+          }
+        }
+      },
+      "id": "6139d01f-10f0-4894-a58d-8ba8a3154d39",
+      "name": "Respond with Dashboard",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        672,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Agent Dashboard Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get All Pending Messages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All Pending Messages": {
+      "main": [
+        [
+          {
+            "node": "Build Agent Dashboard HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Agent Dashboard HTML": {
+      "main": [
+        [
+          {
+            "node": "Respond with Dashboard",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "8623a910-85da-48bc-b5fb-6cf5ef1bfbca",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2025-12-28T12:40:10.694Z",
+      "createdAt": "2025-12-28T12:40:10.694Z",
+      "role": "workflow:owner",
+      "workflowId": "asZhuUTZYRJ7UdaZ",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
