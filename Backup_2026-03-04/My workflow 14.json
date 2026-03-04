@@ -1,0 +1,313 @@
+{
+  "updatedAt": "2026-02-24T15:53:34.000Z",
+  "createdAt": "2026-02-19T13:22:58.804Z",
+  "id": "xJ8OV4qh0ufDjPI5",
+  "name": "My workflow 14",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "c5af38bf-8075-4856-90e0-c4822b3b0e3b",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -592,
+        -64
+      ],
+      "id": "bd6257f4-4dba-46d0-a7f7-73572c95491a",
+      "name": "Webhook",
+      "webhookId": "c5af38bf-8075-4856-90e0-c4822b3b0e3b"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "74903dfb-2cf5-4db9-a825-0c3d748ba052",
+              "name": "text",
+              "value": "={{ $json.body.history[1].text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -368,
+        -64
+      ],
+      "id": "1fbe1fdc-d912-482a-ad43-da1ddf70999f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -144,
+        -64
+      ],
+      "id": "8114e35c-4721-4a84-948b-2cc6a59635f9",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        144
+      ],
+      "id": "954fa9b0-e588-4c06-91f4-70409dd386f8",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Ef2UZYWgupCwAo5e",
+          "name": "Google Gemini(PaLM) Api account 4"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"reply\": \"{{ $json.output }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        208,
+        -64
+      ],
+      "id": "2d10090e-1632-4f43-8841-c49ac5dfbd72",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "a44530c6-1370-498e-914c-f046e83f6724",
+  "activeVersionId": "a44530c6-1370-498e-914c-f046e83f6724",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-02-19T13:22:58.806Z",
+      "createdAt": "2026-02-19T13:22:58.806Z",
+      "role": "workflow:owner",
+      "workflowId": "xJ8OV4qh0ufDjPI5",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-03-03T05:33:42.703Z",
+    "createdAt": "2026-03-03T05:33:42.703Z",
+    "versionId": "a44530c6-1370-498e-914c-f046e83f6724",
+    "workflowId": "xJ8OV4qh0ufDjPI5",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "c5af38bf-8075-4856-90e0-c4822b3b0e3b",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2.1,
+        "position": [
+          -592,
+          -64
+        ],
+        "id": "bd6257f4-4dba-46d0-a7f7-73572c95491a",
+        "name": "Webhook",
+        "webhookId": "c5af38bf-8075-4856-90e0-c4822b3b0e3b"
+      },
+      {
+        "parameters": {
+          "assignments": {
+            "assignments": [
+              {
+                "id": "74903dfb-2cf5-4db9-a825-0c3d748ba052",
+                "name": "text",
+                "value": "={{ $json.body.history[1].text }}",
+                "type": "string"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.set",
+        "typeVersion": 3.4,
+        "position": [
+          -368,
+          -64
+        ],
+        "id": "1fbe1fdc-d912-482a-ad43-da1ddf70999f",
+        "name": "Edit Fields"
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "={{ $json.text }}",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3,
+        "position": [
+          -144,
+          -64
+        ],
+        "id": "8114e35c-4721-4a84-948b-2cc6a59635f9",
+        "name": "AI Agent"
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+        "typeVersion": 1,
+        "position": [
+          -144,
+          144
+        ],
+        "id": "954fa9b0-e588-4c06-91f4-70409dd386f8",
+        "name": "Google Gemini Chat Model",
+        "credentials": {
+          "googlePalmApi": {
+            "id": "Ef2UZYWgupCwAo5e",
+            "name": "Google Gemini(PaLM) Api account 4"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={\n  \"reply\": \"{{ $json.output }}\"\n}",
+          "options": {}
+        },
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1.4,
+        "position": [
+          208,
+          -64
+        ],
+        "id": "2d10090e-1632-4f43-8841-c49ac5dfbd72",
+        "name": "Respond to Webhook"
+      }
+    ],
+    "connections": {
+      "Webhook": {
+        "main": [
+          [
+            {
+              "node": "Edit Fields",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Edit Fields": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Google Gemini Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent": {
+        "main": [
+          [
+            {
+              "node": "Respond to Webhook",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "system migration",
+    "name": null,
+    "description": null,
+    "autosaved": false
+  },
+  "tags": []
+}
