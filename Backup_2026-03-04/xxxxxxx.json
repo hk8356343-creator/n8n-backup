@@ -1,0 +1,124 @@
+{
+  "updatedAt": "2025-12-25T12:23:10.000Z",
+  "createdAt": "2025-12-25T12:21:02.877Z",
+  "id": "3SgRDckfvNbd4paS",
+  "name": "xxxxxxx",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -448,
+        -128
+      ],
+      "id": "fc820eca-9c7f-413d-93d0-9c1f6d2138cf",
+      "name": "When chat message received",
+      "webhookId": "9b5b774e-654a-4f18-b247-58c064ce9bf0"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -96,
+        -128
+      ],
+      "id": "cc94dc95-3279-4534-bc37-62bcc5bf7653",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -112,
+        48
+      ],
+      "id": "0b2b971c-8261-45d0-a126-059eb1927b76",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "71GFeIFqhQsPZP2y",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        96,
+        80
+      ],
+      "id": "e3532e74-fddd-46d0-ae84-b7bfb8ae7eb8",
+      "name": "Simple Memory"
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "b8c88b32-b7ab-4393-8f8c-355c9f066183",
+  "activeVersionId": null,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2025-12-25T12:21:02.882Z",
+      "createdAt": "2025-12-25T12:21:02.882Z",
+      "role": "workflow:owner",
+      "workflowId": "3SgRDckfvNbd4paS",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
