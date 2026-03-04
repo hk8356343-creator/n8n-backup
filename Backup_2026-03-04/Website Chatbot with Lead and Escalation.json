@@ -1,0 +1,1855 @@
+{
+  "updatedAt": "2026-02-09T15:25:42.000Z",
+  "createdAt": "2026-02-04T15:50:22.444Z",
+  "id": "G9ufPJIWtSTeCDGh",
+  "name": "Website Chatbot with Lead and Escalation",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "=You are a customer service AI bot for [BRAND_NAME]. Your job is to:\n\n1. Answer customer questions using the FAQ knowledge base\n2. Identify if the customer is a potential sales lead\n3. Determine if human intervention is needed\n4. Ask for name and email only if not already available\n\n---\n\n## INSTRUCTIONS:\n\n### Step 0: Detect Conversation Closure\nIf customer is closing the conversation with phrases like:\n- \"Thanks\", \"Thank you\", \"Thanks for help\", \"Goodbye\", \"Bye\", \"See you\", \"Have a good day\"\n- No follow-up questions or concerns\nTHEN: Set need_human = false, is_lead = false, and provide a closing message only\n\n### Step 1: Check FAQ Database\nWhen a customer asks a question:\n- Search the FAQ tool for relevant answers\n- If a matching FAQ exists, provide the answer clearly and helpfully\n- If no FAQ match found, escalate to human agent\n\n### Step 2: Analyze Lead Potential vs Escalation (PRIORITY ORDER)\n**IMPORTANT: Only ONE of these can be true, NEVER BOTH**\n\nFirst Priority - Check for Lead Signals:\nWhile responding, evaluate if the customer is a potential sales lead based on:\n- Asking about pricing, plans, or features\n- Requesting demos or consultations\n- Mentioning they have a budget/timeline\n- Showing buying intent or urgency\n- Being a decision-maker\n- Representing a company (B2B)\n- Phrases like \"i want to buy\", \"pricing\", \"plans\", \"interested in\", \"quote\", \"demo\"\n\nIF Lead Signals Detected:\n- Set is_lead = true\n- Set need_human = false (DO NOT escalate to support)\n- Route to sales team only\n\nSecond Priority - Check if Escalation Needed (Only if NOT a lead):\nEscalate to human ONLY if:\n- Customer has complex/technical issues beyond FAQ\n- Customer is angry, frustrated, or demanding escalation\n- FAQ doesn't provide adequate answer\n- Customer needs account-specific help\n- Technical/Account issues (NOT sales opportunities)\n\nIF Escalation Needed:\n- Set need_human = true\n- Set is_lead = false (DO NOT treat as sales lead)\n- Route to support team only\n\n### Step 3: Check if Contact Info Already Available\nIF is_lead = true OR need_human = true:\n- Check memory for existing name and email\n- If BOTH name AND email exist in memory: Do NOT ask again, proceed to escalation\n- If EITHER name OR email missing: Ask for the missing information\n\n---\n\n## RESPONSE FORMAT:\n\nAlways respond with this JSON structure:\n\n{\n  \"need_human\": true/false,\n  \"is_lead\": true/false,\n  \"reply\": \"Your response message here\"\n}\n\nRULE: need_human and is_lead MUST NEVER BOTH BE TRUE at the same time\n\n---\n\n## RESPONSE GUIDELINES:\n\n### need_human field:\n- true = Escalate to support/technical team (ONLY for technical/account issues)\n- false = Bot can handle it OR route to sales\n\n### is_lead field:\n- true = Customer shows buying intent → Route to SALES team only\n- false = Not a sales lead\n\n### reply field:\n- If conversation closing: Provide friendly closing message only\n- If FAQ answer found & no escalation/lead: Provide helpful answer only\n- If is_lead = true & info already in memory: Confirm receipt, prepare for sales handoff\n- If is_lead = true & info missing: Provide answer + ask for missing info only\n- If need_human = true & info already in memory: Confirm receipt, prepare for support handoff\n- If need_human = true & info missing: Provide answer + ask for missing info only\n- Format: \"May I have your [missing field] so our team can assist you?\"\n\n---\n\n## EXAMPLES:\n\n**Example 1: Sales Lead (NOT Escalation)**\nInput: \"I want to buy something, what's your pricing?\"\nOutput:\n{\n  \"need_human\": false,\n  \"is_lead\": true,\n  \"reply\": \"Great! I'd love to help you with pricing. To connect you with our sales team, may I have your name and email address?\"\n}\n\n**Example 2: Technical Escalation (NOT a Lead)**\nInput: \"My integration with Salesforce stopped working\"\nOutput:\n{\n  \"need_human\": true,\n  \"is_lead\": false,\n  \"reply\": \"I'm sorry you're experiencing technical issues. Let me connect you with our technical support team. Could you please provide your name and email address?\"\n}\n\n**Example 3: Sales Lead with Both Info Available**\nInput: \"We have 500 employees and want to purchase\"\nMemory: {name: \"Mike Johnson\", email: \"mike@company.com\"}\nOutput:\n{\n  \"need_human\": false,\n  \"is_lead\": true,\n  \"reply\": \"Excellent! Our sales team will contact you at mike@company.com with a customized proposal within 2 hours.\"\n}\n\n**Example 4: Technical Issue with Both Info Available**\nInput: \"My account is locked, please help\"\nMemory: {name: \"Sarah Wilson\", email: \"sarah@company.com\"}\nOutput:\n{\n  \"need_human\": true,\n  \"is_lead\": false,\n  \"reply\": \"I understand this is urgent, Sarah. Our support team will contact you at sarah@company.com immediately to unlock your account.\"\n}\n\n---\n\n## TONE:\n- Friendly and professional\n- Helpful and empathetic\n- Solution-focused\n- Polite when asking for information\n\n---\n\n## CRITICAL RULES:\n✓ Detect conversation closing FIRST (before other steps)\n✓ Always check FAQ first\n✓ Check for LEAD SIGNALS BEFORE escalation\n✓ If customer wants to buy/pricing/demo → is_lead = true, need_human = false\n✓ If technical/account issue → need_human = true, is_lead = false\n✓ NEVER set both need_human AND is_lead to true\n✓ Check memory for existing contact info before asking\n✓ Only ask for MISSING information\n✓ Never ask for info already in memory\n✓ Do NOT re-ask for name if already have it\n✓ Do NOT re-ask for email if already have it\n✓ If both name and email exist: proceed without asking\n✓ Never make up information\n✓ Identify leads based on buying signals FIRST\n✓ Keep responses concise (2-3 sentences max)\n✓ Use the JSON format for every response\n✓ Memory system captures the information automatically\n✓ Do NOT escalate for simple thanks/goodbye messages\n✓ Route leads to SALES team, not support\n✓ Route technical issues to SUPPORT team, not sales"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -1352,
+        -56
+      ],
+      "id": "18e631dd-b199-4df9-a7ad-818f4b1f9d63",
+      "name": "AI Agent",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1LgCE7siek1t4fltIYEX167hX4kXng3uT0LjT2U4V58o",
+          "mode": "list",
+          "cachedResultName": "customer his",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LgCE7siek1t4fltIYEX167hX4kXng3uT0LjT2U4V58o/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "History",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LgCE7siek1t4fltIYEX167hX4kXng3uT0LjT2U4V58o/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Id": "={{ $('When chat message received').item.json.sessionId }}",
+            "Date": "={{ $now.setZone('Asia/Dhaka').toFormat('yyyy-MM-dd') }}",
+            "Question": "={{ $('When chat message received').item.json.chatInput }}",
+            "Bot Answer": "={{ $json.output.reply }}"
+          },
+          "matchingColumns": [
+            "Id"
+          ],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Id",
+              "displayName": "Id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Question",
+              "displayName": "Question",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Bot Answer",
+              "displayName": "Bot Answer",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -656,
+        -152
+      ],
+      "id": "2581bc51-7b65-48c9-947f-326711b83dce",
+      "name": "customer chat history",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "16381cc3-de1f-4dda-a768-4255b3b58309",
+              "leftValue": "={{ $('AI Agent').item.json.output.is_lead }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        80,
+        184
+      ],
+      "id": "6d16a598-8ab8-413e-96fa-adbdc3ae3c38",
+      "name": "Lead?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const messages = $input.first().json.messages || [];\nconst memory = $input.first().json.memory || {};\n\n// If memory already has both, return immediately\nif (memory.name && memory.email) {\n  return { \n    name: memory.name, \n    email: memory.email \n  };\n}\n\nlet foundName = memory.name || null;\nlet foundEmail = memory.email || null;\nlet allEmails = [];\nlet allNames = [];\n\n// Helper: Validate email\nfunction isValidEmail(email) {\n  const emailRegex = /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/;\n  return emailRegex.test(email);\n}\n\n// Helper: Validate name - MUCH STRICTER\nfunction isValidName(name) {\n  const nameParts = name.trim().split(/\\s+/);\n  \n  // Must be 2-4 words for valid full name\n  if (nameParts.length < 2 || nameParts.length > 4) return false;\n  \n  // Check each part\n  for (const part of nameParts) {\n    // Each part must be at least 2 characters\n    if (part.length < 2) return false;\n    \n    // First letter must be uppercase\n    if (part[0] !== part[0].toUpperCase()) return false;\n    \n    // Rest should be lowercase (not all caps)\n    if (part === part.toUpperCase() && part.length > 1) return false;\n    \n    // Should not contain numbers\n    if (/\\d/.test(part)) return false;\n  }\n  \n  // Block common false positives and non-name phrases\n  const lower = name.toLowerCase();\n  const blocklist = [\n    'not found', 'thank you', 'good day', 'hello there', 'good morning',\n    'good afternoon', 'good evening', 'see you', 'talk soon', 'best regards',\n    'kind regards', 'thank god', 'oh yes', 'oh no', 'of course', 'yes sir',\n    'no problem', 'you too', 'as well', 'for sure', 'will do', 'got it',\n    'want to', 'need to', 'have to', 'going to', 'able to', 'used to',\n    'how to', 'what to', 'when to', 'where to', 'why to', 'who to',\n    'talk with', 'speak with', 'chat with', 'want talk', 'need help',\n    'please help', 'can you', 'could you', 'would you', 'should i',\n    'may i', 'will you', 'do you', 'are you', 'is it', 'was it'\n  ];\n  \n  if (blocklist.includes(lower)) return false;\n  \n  // Check if it contains common verbs (indicates it's not a name)\n  const verbs = ['want', 'need', 'talk', 'speak', 'chat', 'help', 'make', 'take', 'give', 'tell', 'ask', 'send', 'get', 'have', 'know', 'think', 'find', 'work', 'call', 'buy', 'sell'];\n  for (const part of nameParts) {\n    if (verbs.includes(part.toLowerCase())) {\n      return false;\n    }\n  }\n  \n  return true;\n}\n\n// Helper: Clean extracted name\nfunction cleanName(name) {\n  let cleaned = name.trim();\n  \n  // Remove trailing noise words\n  cleaned = cleaned.replace(/\\s+(and|with|at|the|hk|or|from|to|for|is|was|are|were|be|been|being|have|has|had|do|does|did|will|would|should|could|may|might|must|can|shall)$/i, '');\n  \n  // Remove leading noise words\n  cleaned = cleaned.replace(/^(and|with|at|the|or|from|to|for|is|was|are|were|be|been|being|have|has|had|do|does|did|will|would|should|could|may|might|must|can|shall)\\s+/i, '');\n  \n  // Remove special characters except spaces and hyphens\n  cleaned = cleaned.replace(/[^\\w\\s-]/g, '');\n  \n  // Normalize spaces\n  cleaned = cleaned.replace(/\\s+/g, ' ').trim();\n  \n  // Capitalize properly\n  cleaned = cleaned.split(' ')\n    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())\n    .join(' ');\n  \n  return cleaned;\n}\n\n// SEARCH ALL MESSAGES\nfor (let i = 0; i < messages.length; i++) {\n  const message = messages[i];\n  const text = (message.human || \"\").trim();\n  \n  if (!text) continue;\n  \n  // ==================== EMAIL EXTRACTION ====================\n  const emailPatterns = [\n    /([a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})/g,\n    /(?:email|mail|e-mail|gmail|contact)[\\s:is]+([a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})/gi,\n    /(?:reach|write|send)[\\s:tome]+([a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})/gi,\n    /[\"'`]([a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})[\"'`]/g,\n    /[<\\[\\(]([a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})[>\\]\\)]/g,\n  ];\n  \n  for (const pattern of emailPatterns) {\n    let match;\n    const regex = new RegExp(pattern.source, pattern.flags);\n    while ((match = regex.exec(text)) !== null) {\n      const email = match[1].toLowerCase().trim();\n      if (isValidEmail(email) && !allEmails.includes(email)) {\n        allEmails.push({\n          email: email,\n          messageIndex: i\n        });\n      }\n    }\n  }\n  \n  // ==================== NAME EXTRACTION - STRICT PATTERNS ONLY ====================\n  const namePatterns = [\n    // PRIORITY 1: Explicit introductions (HIGHEST CONFIDENCE)\n    {\n      regex: /(?:my name is|my name's|i am|i'm|this is|call me|i'm called|name's|name is)\\s+([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){1,3})(?=\\s|$|[,.:;!?])/i,\n      priority: 1,\n      description: \"Explicit introduction\"\n    },\n    \n    // PRIORITY 2: Name directly before/after email (HIGH CONFIDENCE)\n    {\n      regex: /\\b([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){1,2})\\s*[,\\-–—]?\\s*(?:and\\s+)?([a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})/i,\n      priority: 2,\n      description: \"Name before email\"\n    },\n    \n    // PRIORITY 1: Greeting with name\n    {\n      regex: /(?:hi|hello|hey|greetings)[,\\s]+(?:i'm|i am|this is)\\s+([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){1,2})(?=\\s|$|[,.:;!?])/i,\n      priority: 1,\n      description: \"Greeting with name\"\n    },\n    \n    // PRIORITY 1: Signature format\n    {\n      regex: /(?:regards|sincerely|thanks|thank you|best|cheers)[,\\s]+([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){1,2})\\s*$/im,\n      priority: 1,\n      description: \"Signature\"\n    },\n    \n    // PRIORITY 2: Contact format\n    {\n      regex: /(?:name|contact|person)[:\\s]+([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){1,2})(?=\\s|$|[,.:;!?])/i,\n      priority: 2,\n      description: \"Contact format\"\n    },\n    \n    // PRIORITY 2: With title\n    {\n      regex: /(?:mr|mrs|ms|miss|dr|prof|sir|madam)\\.?\\s+([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){1,2})(?=\\s|$|[,.:;!?])/i,\n      priority: 2,\n      description: \"With title\"\n    },\n    \n    // PRIORITY 0: Update/correction (HIGHEST PRIORITY)\n    {\n      regex: /(?:actually|correction|sorry|wait|update|change|correct|fix).*?(?:name|i'm|i am|call me|it's)\\s+([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){1,3})(?=\\s|$|[,.:;!?])/i,\n      priority: 0,\n      description: \"Name correction\"\n    },\n    \n    // REMOVED: Standalone name patterns (too prone to false positives)\n  ];\n  \n  for (const {regex, priority, description} of namePatterns) {\n    const nameMatch = text.match(regex);\n    if (nameMatch && nameMatch[1]) {\n      let extractedName = cleanName(nameMatch[1]);\n      \n      if (isValidName(extractedName)) {\n        allNames.push({\n          name: extractedName,\n          priority: priority,\n          description: description,\n          messageIndex: i,\n          messageText: text\n        });\n      }\n    }\n  }\n}\n\n// ==================== FINAL SELECTION ====================\n\n// Select BEST name (prefer later messages, then priority)\nif (allNames.length > 0) {\n  allNames.sort((a, b) => {\n    if (a.messageIndex !== b.messageIndex) {\n      return a.messageIndex - b.messageIndex;\n    }\n    return a.priority - b.priority;\n  });\n  \n  foundName = allNames[allNames.length - 1].name;\n}\n\n// Select FIRST email\nif (allEmails.length > 0) {\n  foundEmail = allEmails[0].email;\n}\n\n// Final result\nconst result = {\n  name: foundName || \"Not found\",\n  email: foundEmail || \"Not found\"\n};\n\nreturn result;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -368,
+        40
+      ],
+      "id": "38f432b3-5583-4151-81de-329d825a5fc2",
+      "name": "Srape Name and Email1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a2312a3d-479b-4f4a-9c9e-b81842724995",
+              "leftValue": "={{ $('AI Agent').item.json.output.needs_human }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -144,
+        40
+      ],
+      "id": "db8d772c-06e2-4372-8171-2052e90b6540",
+      "name": "Need human?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "af5e8996-9556-43d3-bcf7-38b27ee5042b",
+              "leftValue": "={{ $json.name }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "5835ed64-b4f5-4846-a28d-a8a513c24a1f",
+              "leftValue": "={{ $json.email }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        80,
+        -200
+      ],
+      "id": "bc8069bc-5691-4d78-936f-d6682677d21c",
+      "name": "If all field Collected"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "af5e8996-9556-43d3-bcf7-38b27ee5042b",
+              "leftValue": "={{ $json.name }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "5835ed64-b4f5-4846-a28d-a8a513c24a1f",
+              "leftValue": "={{ $json.email }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        304,
+        112
+      ],
+      "id": "e85d5dae-eb58-4c8b-bc09-959643dd7dfb",
+      "name": "If all field Collected1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4",
+          "mode": "list",
+          "cachedResultName": "FAQ for Export-Pi",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "FAQ's",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        -1216,
+        168
+      ],
+      "id": "74a7d473-c641-4eb6-b0e9-e4c099c36b18",
+      "name": "FAQ's",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1LgCE7siek1t4fltIYEX167hX4kXng3uT0LjT2U4V58o",
+          "mode": "list",
+          "cachedResultName": "customer his",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LgCE7siek1t4fltIYEX167hX4kXng3uT0LjT2U4V58o/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 2045294753,
+          "mode": "list",
+          "cachedResultName": "Escalated lead",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LgCE7siek1t4fltIYEX167hX4kXng3uT0LjT2U4V58o/edit#gid=2045294753"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Date": "={{ $now.setZone('Asia/Dhaka').toFormat('yyyy-MM-dd') }}",
+            "Name": "={{ $json.name }}",
+            "Email": "={{ $json.email }}",
+            "Question": "need human",
+            "Id": "={{ $('When chat message received').item.json.sessionId }}"
+          },
+          "matchingColumns": [
+            "Email"
+          ],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Id",
+              "displayName": "Id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Question",
+              "displayName": "Question",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        304,
+        -272
+      ],
+      "id": "6a4c7311-a73d-4916-9dc8-19712843bdf6",
+      "name": "Escalated",
+      "alwaysOutputData": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1LgCE7siek1t4fltIYEX167hX4kXng3uT0LjT2U4V58o",
+          "mode": "list",
+          "cachedResultName": "customer his",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LgCE7siek1t4fltIYEX167hX4kXng3uT0LjT2U4V58o/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 322365159,
+          "mode": "list",
+          "cachedResultName": "Lead",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LgCE7siek1t4fltIYEX167hX4kXng3uT0LjT2U4V58o/edit#gid=322365159"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $json.name }}",
+            "Email": "={{ $json.email }}",
+            "Lead": "Hot",
+            "Date": "={{$now.setZone('Asia/Dhaka').toFormat('yyyy-MM-dd')}}",
+            "Customer message": "={{ $('When chat message received').item.json.chatInput }}",
+            "Id": "={{ $('When chat message received').item.json.sessionId }}"
+          },
+          "matchingColumns": [
+            "Email"
+          ],
+          "schema": [
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Id",
+              "displayName": "Id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Customer message",
+              "displayName": "Customer message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Lead",
+              "displayName": "Lead",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        528,
+        40
+      ],
+      "id": "f3782626-f487-4ac0-a58f-ba4d539bb949",
+      "name": "Lead Sheet",
+      "alwaysOutputData": false,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "P2WoYlnHbPhHpLg0",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"reply\": \"Your message to the customer\",\n  \"needs_human\": false,\n  \"is_lead\":true\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        -984,
+        376
+      ],
+      "id": "7c79387b-a9b7-4b04-a704-58a93fb99f16",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+      "typeVersion": 1,
+      "position": [
+        -1088,
+        168
+      ],
+      "id": "633d8e7f-e4a8-41b9-b28b-7c639366bcaa",
+      "name": "Auto-fixing Output Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      text: $('AI Agent').first().json.output.reply\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        976,
+        184
+      ],
+      "id": "7ee1e535-b6f5-4a1f-97ec-6b8c8c0b2aa5",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [\n  {\n    json: {\n      text: $('AI Agent').first().json.output.reply\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        -200
+      ],
+      "id": "c564a770-85d8-4c3a-bdc8-9a37f545d702",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        -720,
+        40
+      ],
+      "id": "69da4492-ef8e-4940-a66a-7ed32b937a5b",
+      "name": "Chat Memory Manager"
+    },
+    {
+      "parameters": {
+        "public": true,
+        "mode": "webhook",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -1632,
+        -56
+      ],
+      "id": "fcae1d06-60e1-4c25-be3a-c30f1ad76fba",
+      "name": "When chat message received",
+      "webhookId": "a286bbf8-3db0-49e9-8987-25bf1c2d3ffd"
+    },
+    {
+      "parameters": {
+        "sendTo": "testnnworkflow13@gmail.com",
+        "subject": "There is a New Lead",
+        "message": "=Please Check This New lead ,\nCustomer Name: {{ $json.Name }},\nCustomer Email: {{ $json.Email }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        752,
+        40
+      ],
+      "id": "25708921-c80f-47ec-9674-845d6cd6dc66",
+      "name": "Send a message",
+      "webhookId": "c74f97cb-ceb7-47c9-ab13-502a8daf7752",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SN79AzLmxYdb0jSR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "testnnworkflow13@gmail.com",
+        "subject": "Bep Bep Need you to talk !!!",
+        "message": "=There is a customer wanted to talk with you!!!\nCustomer Name: {{ $json.Name }},\nCustomer Email: {{ $json.Email }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        528,
+        -272
+      ],
+      "id": "cc5fbec6-6d67-49ee-9b58-2660cfd1bc7d",
+      "name": "Send a message1",
+      "webhookId": "a2787124-e79b-41c6-a06b-0957b334414a",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "SN79AzLmxYdb0jSR",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "moonshotai/kimi-k2-instruct",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -1408,
+        376
+      ],
+      "id": "57c326d5-42ca-4bd9-8db2-8a2baa631be8",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "5h1EDdb5qUKmhLT3",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 100
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -1344,
+        168
+      ],
+      "id": "90c65047-b2a0-48c3-9b6f-c20b483dd332",
+      "name": "Simple Memory"
+    }
+  ],
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "customer chat history",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Chat Memory Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead?": {
+      "main": [
+        [
+          {
+            "node": "If all field Collected1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Srape Name and Email1": {
+      "main": [
+        [
+          {
+            "node": "Need human?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Need human?": {
+      "main": [
+        [
+          {
+            "node": "If all field Collected",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Lead?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If all field Collected": {
+      "main": [
+        [
+          {
+            "node": "Escalated",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If all field Collected1": {
+      "main": [
+        [
+          {
+            "node": "Lead Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FAQ's": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escalated": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auto-fixing Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Memory Manager": {
+      "main": [
+        [
+          {
+            "node": "Srape Name and Email1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Auto-fixing Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Chat Memory Manager",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "508f0fa9-23a9-45c6-933c-4de18f876655",
+  "activeVersionId": "508f0fa9-23a9-45c6-933c-4de18f876655",
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-02-04T15:50:22.447Z",
+      "createdAt": "2026-02-04T15:50:22.447Z",
+      "role": "workflow:owner",
+      "workflowId": "G9ufPJIWtSTeCDGh",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-03-03T05:33:42.703Z",
+    "createdAt": "2026-03-03T05:33:42.703Z",
+    "versionId": "508f0fa9-23a9-45c6-933c-4de18f876655",
+    "workflowId": "G9ufPJIWtSTeCDGh",
+    "nodes": [
+      {
+        "parameters": {
+          "hasOutputParser": true,
+          "options": {
+            "systemMessage": "=You are a customer service AI bot for [BRAND_NAME]. Your job is to:\n\n1. Answer customer questions using the FAQ knowledge base\n2. Identify if the customer is a potential sales lead\n3. Determine if human intervention is needed\n4. Ask for name and email only if not already available\n\n---\n\n## INSTRUCTIONS:\n\n### Step 0: Detect Conversation Closure\nIf customer is closing the conversation with phrases like:\n- \"Thanks\", \"Thank you\", \"Thanks for help\", \"Goodbye\", \"Bye\", \"See you\", \"Have a good day\"\n- No follow-up questions or concerns\nTHEN: Set need_human = false, is_lead = false, and provide a closing message only\n\n### Step 1: Check FAQ Database\nWhen a customer asks a question:\n- Search the FAQ tool for relevant answers\n- If a matching FAQ exists, provide the answer clearly and helpfully\n- If no FAQ match found, escalate to human agent\n\n### Step 2: Analyze Lead Potential vs Escalation (PRIORITY ORDER)\n**IMPORTANT: Only ONE of these can be true, NEVER BOTH**\n\nFirst Priority - Check for Lead Signals:\nWhile responding, evaluate if the customer is a potential sales lead based on:\n- Asking about pricing, plans, or features\n- Requesting demos or consultations\n- Mentioning they have a budget/timeline\n- Showing buying intent or urgency\n- Being a decision-maker\n- Representing a company (B2B)\n- Phrases like \"i want to buy\", \"pricing\", \"plans\", \"interested in\", \"quote\", \"demo\"\n\nIF Lead Signals Detected:\n- Set is_lead = true\n- Set need_human = false (DO NOT escalate to support)\n- Route to sales team only\n\nSecond Priority - Check if Escalation Needed (Only if NOT a lead):\nEscalate to human ONLY if:\n- Customer has complex/technical issues beyond FAQ\n- Customer is angry, frustrated, or demanding escalation\n- FAQ doesn't provide adequate answer\n- Customer needs account-specific help\n- Technical/Account issues (NOT sales opportunities)\n\nIF Escalation Needed:\n- Set need_human = true\n- Set is_lead = false (DO NOT treat as sales lead)\n- Route to support team only\n\n### Step 3: Check if Contact Info Already Available\nIF is_lead = true OR need_human = true:\n- Check memory for existing name and email\n- If BOTH name AND email exist in memory: Do NOT ask again, proceed to escalation\n- If EITHER name OR email missing: Ask for the missing information\n\n---\n\n## RESPONSE FORMAT:\n\nAlways respond with this JSON structure:\n\n{\n  \"need_human\": true/false,\n  \"is_lead\": true/false,\n  \"reply\": \"Your response message here\"\n}\n\nRULE: need_human and is_lead MUST NEVER BOTH BE TRUE at the same time\n\n---\n\n## RESPONSE GUIDELINES:\n\n### need_human field:\n- true = Escalate to support/technical team (ONLY for technical/account issues)\n- false = Bot can handle it OR route to sales\n\n### is_lead field:\n- true = Customer shows buying intent → Route to SALES team only\n- false = Not a sales lead\n\n### reply field:\n- If conversation closing: Provide friendly closing message only\n- If FAQ answer found & no escalation/lead: Provide helpful answer only\n- If is_lead = true & info already in memory: Confirm receipt, prepare for sales handoff\n- If is_lead = true & info missing: Provide answer + ask for missing info only\n- If need_human = true & info already in memory: Confirm receipt, prepare for support handoff\n- If need_human = true & info missing: Provide answer + ask for missing info only\n- Format: \"May I have your [missing field] so our team can assist you?\"\n\n---\n\n## EXAMPLES:\n\n**Example 1: Sales Lead (NOT Escalation)**\nInput: \"I want to buy something, what's your pricing?\"\nOutput:\n{\n  \"need_human\": false,\n  \"is_lead\": true,\n  \"reply\": \"Great! I'd love to help you with pricing. To connect you with our sales team, may I have your name and email address?\"\n}\n\n**Example 2: Technical Escalation (NOT a Lead)**\nInput: \"My integration with Salesforce stopped working\"\nOutput:\n{\n  \"need_human\": true,\n  \"is_lead\": false,\n  \"reply\": \"I'm sorry you're experiencing technical issues. Let me connect you with our technical support team. Could you please provide your name and email address?\"\n}\n\n**Example 3: Sales Lead with Both Info Available**\nInput: \"We have 500 employees and want to purchase\"\nMemory: {name: \"Mike Johnson\", email: \"mike@company.com\"}\nOutput:\n{\n  \"need_human\": false,\n  \"is_lead\": true,\n  \"reply\": \"Excellent! Our sales team will contact you at mike@company.com with a customized proposal within 2 hours.\"\n}\n\n**Example 4: Technical Issue with Both Info Available**\nInput: \"My account is locked, please help\"\nMemory: {name: \"Sarah Wilson\", email: \"sarah@company.com\"}\nOutput:\n{\n  \"need_human\": true,\n  \"is_lead\": false,\n  \"reply\": \"I understand this is urgent, Sarah. Our support team will contact you at sarah@company.com immediately to unlock your account.\"\n}\n\n---\n\n## TONE:\n- Friendly and professional\n- Helpful and empathetic\n- Solution-focused\n- Polite when asking for information\n\n---\n\n## CRITICAL RULES:\n✓ Detect conversation closing FIRST (before other steps)\n✓ Always check FAQ first\n✓ Check for LEAD SIGNALS BEFORE escalation\n✓ If customer wants to buy/pricing/demo → is_lead = true, need_human = false\n✓ If technical/account issue → need_human = true, is_lead = false\n✓ NEVER set both need_human AND is_lead to true\n✓ Check memory for existing contact info before asking\n✓ Only ask for MISSING information\n✓ Never ask for info already in memory\n✓ Do NOT re-ask for name if already have it\n✓ Do NOT re-ask for email if already have it\n✓ If both name and email exist: proceed without asking\n✓ Never make up information\n✓ Identify leads based on buying signals FIRST\n✓ Keep responses concise (2-3 sentences max)\n✓ Use the JSON format for every response\n✓ Memory system captures the information automatically\n✓ Do NOT escalate for simple thanks/goodbye messages\n✓ Route leads to SALES team, not support\n✓ Route technical issues to SUPPORT team, not sales"
+          }
+        },
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 3,
+        "position": [
+          -1352,
+          -56
+        ],
+        "id": "18e631dd-b199-4df9-a7ad-818f4b1f9d63",
+        "name": "AI Agent",
+        "retryOnFail": true
+      },
+      {
+        "parameters": {
+          "operation": "append",
+          "documentId": {
+            "__rl": true,
+            "value": "1LgCE7siek1t4fltIYEX167hX4kXng3uT0LjT2U4V58o",
+            "mode": "list",
+            "cachedResultName": "customer his",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LgCE7siek1t4fltIYEX167hX4kXng3uT0LjT2U4V58o/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "gid=0",
+            "mode": "list",
+            "cachedResultName": "History",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LgCE7siek1t4fltIYEX167hX4kXng3uT0LjT2U4V58o/edit#gid=0"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Id": "={{ $('When chat message received').item.json.sessionId }}",
+              "Date": "={{ $now.setZone('Asia/Dhaka').toFormat('yyyy-MM-dd') }}",
+              "Question": "={{ $('When chat message received').item.json.chatInput }}",
+              "Bot Answer": "={{ $json.output.reply }}"
+            },
+            "matchingColumns": [
+              "Id"
+            ],
+            "schema": [
+              {
+                "id": "Date",
+                "displayName": "Date",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Id",
+                "displayName": "Id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Question",
+                "displayName": "Question",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Bot Answer",
+                "displayName": "Bot Answer",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          -656,
+          -152
+        ],
+        "id": "2581bc51-7b65-48c9-947f-326711b83dce",
+        "name": "customer chat history",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "P2WoYlnHbPhHpLg0",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "16381cc3-de1f-4dda-a768-4255b3b58309",
+                "leftValue": "={{ $('AI Agent').item.json.output.is_lead }}",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          80,
+          184
+        ],
+        "id": "6d16a598-8ab8-413e-96fa-adbdc3ae3c38",
+        "name": "Lead?"
+      },
+      {
+        "parameters": {
+          "jsCode": "const messages = $input.first().json.messages || [];\nconst memory = $input.first().json.memory || {};\n\n// If memory already has both, return immediately\nif (memory.name && memory.email) {\n  return { \n    name: memory.name, \n    email: memory.email \n  };\n}\n\nlet foundName = memory.name || null;\nlet foundEmail = memory.email || null;\nlet allEmails = [];\nlet allNames = [];\n\n// Helper: Validate email\nfunction isValidEmail(email) {\n  const emailRegex = /^[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$/;\n  return emailRegex.test(email);\n}\n\n// Helper: Validate name - MUCH STRICTER\nfunction isValidName(name) {\n  const nameParts = name.trim().split(/\\s+/);\n  \n  // Must be 2-4 words for valid full name\n  if (nameParts.length < 2 || nameParts.length > 4) return false;\n  \n  // Check each part\n  for (const part of nameParts) {\n    // Each part must be at least 2 characters\n    if (part.length < 2) return false;\n    \n    // First letter must be uppercase\n    if (part[0] !== part[0].toUpperCase()) return false;\n    \n    // Rest should be lowercase (not all caps)\n    if (part === part.toUpperCase() && part.length > 1) return false;\n    \n    // Should not contain numbers\n    if (/\\d/.test(part)) return false;\n  }\n  \n  // Block common false positives and non-name phrases\n  const lower = name.toLowerCase();\n  const blocklist = [\n    'not found', 'thank you', 'good day', 'hello there', 'good morning',\n    'good afternoon', 'good evening', 'see you', 'talk soon', 'best regards',\n    'kind regards', 'thank god', 'oh yes', 'oh no', 'of course', 'yes sir',\n    'no problem', 'you too', 'as well', 'for sure', 'will do', 'got it',\n    'want to', 'need to', 'have to', 'going to', 'able to', 'used to',\n    'how to', 'what to', 'when to', 'where to', 'why to', 'who to',\n    'talk with', 'speak with', 'chat with', 'want talk', 'need help',\n    'please help', 'can you', 'could you', 'would you', 'should i',\n    'may i', 'will you', 'do you', 'are you', 'is it', 'was it'\n  ];\n  \n  if (blocklist.includes(lower)) return false;\n  \n  // Check if it contains common verbs (indicates it's not a name)\n  const verbs = ['want', 'need', 'talk', 'speak', 'chat', 'help', 'make', 'take', 'give', 'tell', 'ask', 'send', 'get', 'have', 'know', 'think', 'find', 'work', 'call', 'buy', 'sell'];\n  for (const part of nameParts) {\n    if (verbs.includes(part.toLowerCase())) {\n      return false;\n    }\n  }\n  \n  return true;\n}\n\n// Helper: Clean extracted name\nfunction cleanName(name) {\n  let cleaned = name.trim();\n  \n  // Remove trailing noise words\n  cleaned = cleaned.replace(/\\s+(and|with|at|the|hk|or|from|to|for|is|was|are|were|be|been|being|have|has|had|do|does|did|will|would|should|could|may|might|must|can|shall)$/i, '');\n  \n  // Remove leading noise words\n  cleaned = cleaned.replace(/^(and|with|at|the|or|from|to|for|is|was|are|were|be|been|being|have|has|had|do|does|did|will|would|should|could|may|might|must|can|shall)\\s+/i, '');\n  \n  // Remove special characters except spaces and hyphens\n  cleaned = cleaned.replace(/[^\\w\\s-]/g, '');\n  \n  // Normalize spaces\n  cleaned = cleaned.replace(/\\s+/g, ' ').trim();\n  \n  // Capitalize properly\n  cleaned = cleaned.split(' ')\n    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())\n    .join(' ');\n  \n  return cleaned;\n}\n\n// SEARCH ALL MESSAGES\nfor (let i = 0; i < messages.length; i++) {\n  const message = messages[i];\n  const text = (message.human || \"\").trim();\n  \n  if (!text) continue;\n  \n  // ==================== EMAIL EXTRACTION ====================\n  const emailPatterns = [\n    /([a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})/g,\n    /(?:email|mail|e-mail|gmail|contact)[\\s:is]+([a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})/gi,\n    /(?:reach|write|send)[\\s:tome]+([a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})/gi,\n    /[\"'`]([a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})[\"'`]/g,\n    /[<\\[\\(]([a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})[>\\]\\)]/g,\n  ];\n  \n  for (const pattern of emailPatterns) {\n    let match;\n    const regex = new RegExp(pattern.source, pattern.flags);\n    while ((match = regex.exec(text)) !== null) {\n      const email = match[1].toLowerCase().trim();\n      if (isValidEmail(email) && !allEmails.includes(email)) {\n        allEmails.push({\n          email: email,\n          messageIndex: i\n        });\n      }\n    }\n  }\n  \n  // ==================== NAME EXTRACTION - STRICT PATTERNS ONLY ====================\n  const namePatterns = [\n    // PRIORITY 1: Explicit introductions (HIGHEST CONFIDENCE)\n    {\n      regex: /(?:my name is|my name's|i am|i'm|this is|call me|i'm called|name's|name is)\\s+([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){1,3})(?=\\s|$|[,.:;!?])/i,\n      priority: 1,\n      description: \"Explicit introduction\"\n    },\n    \n    // PRIORITY 2: Name directly before/after email (HIGH CONFIDENCE)\n    {\n      regex: /\\b([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){1,2})\\s*[,\\-–—]?\\s*(?:and\\s+)?([a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})/i,\n      priority: 2,\n      description: \"Name before email\"\n    },\n    \n    // PRIORITY 1: Greeting with name\n    {\n      regex: /(?:hi|hello|hey|greetings)[,\\s]+(?:i'm|i am|this is)\\s+([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){1,2})(?=\\s|$|[,.:;!?])/i,\n      priority: 1,\n      description: \"Greeting with name\"\n    },\n    \n    // PRIORITY 1: Signature format\n    {\n      regex: /(?:regards|sincerely|thanks|thank you|best|cheers)[,\\s]+([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){1,2})\\s*$/im,\n      priority: 1,\n      description: \"Signature\"\n    },\n    \n    // PRIORITY 2: Contact format\n    {\n      regex: /(?:name|contact|person)[:\\s]+([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){1,2})(?=\\s|$|[,.:;!?])/i,\n      priority: 2,\n      description: \"Contact format\"\n    },\n    \n    // PRIORITY 2: With title\n    {\n      regex: /(?:mr|mrs|ms|miss|dr|prof|sir|madam)\\.?\\s+([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){1,2})(?=\\s|$|[,.:;!?])/i,\n      priority: 2,\n      description: \"With title\"\n    },\n    \n    // PRIORITY 0: Update/correction (HIGHEST PRIORITY)\n    {\n      regex: /(?:actually|correction|sorry|wait|update|change|correct|fix).*?(?:name|i'm|i am|call me|it's)\\s+([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){1,3})(?=\\s|$|[,.:;!?])/i,\n      priority: 0,\n      description: \"Name correction\"\n    },\n    \n    // REMOVED: Standalone name patterns (too prone to false positives)\n  ];\n  \n  for (const {regex, priority, description} of namePatterns) {\n    const nameMatch = text.match(regex);\n    if (nameMatch && nameMatch[1]) {\n      let extractedName = cleanName(nameMatch[1]);\n      \n      if (isValidName(extractedName)) {\n        allNames.push({\n          name: extractedName,\n          priority: priority,\n          description: description,\n          messageIndex: i,\n          messageText: text\n        });\n      }\n    }\n  }\n}\n\n// ==================== FINAL SELECTION ====================\n\n// Select BEST name (prefer later messages, then priority)\nif (allNames.length > 0) {\n  allNames.sort((a, b) => {\n    if (a.messageIndex !== b.messageIndex) {\n      return a.messageIndex - b.messageIndex;\n    }\n    return a.priority - b.priority;\n  });\n  \n  foundName = allNames[allNames.length - 1].name;\n}\n\n// Select FIRST email\nif (allEmails.length > 0) {\n  foundEmail = allEmails[0].email;\n}\n\n// Final result\nconst result = {\n  name: foundName || \"Not found\",\n  email: foundEmail || \"Not found\"\n};\n\nreturn result;"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -368,
+          40
+        ],
+        "id": "38f432b3-5583-4151-81de-329d825a5fc2",
+        "name": "Srape Name and Email1"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "a2312a3d-479b-4f4a-9c9e-b81842724995",
+                "leftValue": "={{ $('AI Agent').item.json.output.needs_human }}",
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          -144,
+          40
+        ],
+        "id": "db8d772c-06e2-4372-8171-2052e90b6540",
+        "name": "Need human?"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "af5e8996-9556-43d3-bcf7-38b27ee5042b",
+                "leftValue": "={{ $json.name }}",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              },
+              {
+                "id": "5835ed64-b4f5-4846-a28d-a8a513c24a1f",
+                "leftValue": "={{ $json.email }}",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          80,
+          -200
+        ],
+        "id": "bc8069bc-5691-4d78-936f-d6682677d21c",
+        "name": "If all field Collected"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "af5e8996-9556-43d3-bcf7-38b27ee5042b",
+                "leftValue": "={{ $json.name }}",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              },
+              {
+                "id": "5835ed64-b4f5-4846-a28d-a8a513c24a1f",
+                "leftValue": "={{ $json.email }}",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          304,
+          112
+        ],
+        "id": "e85d5dae-eb58-4c8b-bc09-959643dd7dfb",
+        "name": "If all field Collected1"
+      },
+      {
+        "parameters": {
+          "documentId": {
+            "__rl": true,
+            "value": "1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4",
+            "mode": "list",
+            "cachedResultName": "FAQ for Export-Pi",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": "gid=0",
+            "mode": "list",
+            "cachedResultName": "FAQ's",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1uKKu7EDnV_9WZ-PBt5uaqlOh_-SsSFF0dPgqFLt0q_4/edit#gid=0"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheetsTool",
+        "typeVersion": 4.7,
+        "position": [
+          -1216,
+          168
+        ],
+        "id": "74a7d473-c641-4eb6-b0e9-e4c099c36b18",
+        "name": "FAQ's",
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "P2WoYlnHbPhHpLg0",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "appendOrUpdate",
+          "documentId": {
+            "__rl": true,
+            "value": "1LgCE7siek1t4fltIYEX167hX4kXng3uT0LjT2U4V58o",
+            "mode": "list",
+            "cachedResultName": "customer his",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LgCE7siek1t4fltIYEX167hX4kXng3uT0LjT2U4V58o/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 2045294753,
+            "mode": "list",
+            "cachedResultName": "Escalated lead",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LgCE7siek1t4fltIYEX167hX4kXng3uT0LjT2U4V58o/edit#gid=2045294753"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Date": "={{ $now.setZone('Asia/Dhaka').toFormat('yyyy-MM-dd') }}",
+              "Name": "={{ $json.name }}",
+              "Email": "={{ $json.email }}",
+              "Question": "need human",
+              "Id": "={{ $('When chat message received').item.json.sessionId }}"
+            },
+            "matchingColumns": [
+              "Email"
+            ],
+            "schema": [
+              {
+                "id": "Date",
+                "displayName": "Date",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Id",
+                "displayName": "Id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Name",
+                "displayName": "Name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Email",
+                "displayName": "Email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Question",
+                "displayName": "Question",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          304,
+          -272
+        ],
+        "id": "6a4c7311-a73d-4916-9dc8-19712843bdf6",
+        "name": "Escalated",
+        "alwaysOutputData": false,
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "P2WoYlnHbPhHpLg0",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "appendOrUpdate",
+          "documentId": {
+            "__rl": true,
+            "value": "1LgCE7siek1t4fltIYEX167hX4kXng3uT0LjT2U4V58o",
+            "mode": "list",
+            "cachedResultName": "customer his",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LgCE7siek1t4fltIYEX167hX4kXng3uT0LjT2U4V58o/edit?usp=drivesdk"
+          },
+          "sheetName": {
+            "__rl": true,
+            "value": 322365159,
+            "mode": "list",
+            "cachedResultName": "Lead",
+            "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1LgCE7siek1t4fltIYEX167hX4kXng3uT0LjT2U4V58o/edit#gid=322365159"
+          },
+          "columns": {
+            "mappingMode": "defineBelow",
+            "value": {
+              "Name": "={{ $json.name }}",
+              "Email": "={{ $json.email }}",
+              "Lead": "Hot",
+              "Date": "={{$now.setZone('Asia/Dhaka').toFormat('yyyy-MM-dd')}}",
+              "Customer message": "={{ $('When chat message received').item.json.chatInput }}",
+              "Id": "={{ $('When chat message received').item.json.sessionId }}"
+            },
+            "matchingColumns": [
+              "Email"
+            ],
+            "schema": [
+              {
+                "id": "Date",
+                "displayName": "Date",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Id",
+                "displayName": "Id",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Name",
+                "displayName": "Name",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              },
+              {
+                "id": "Email",
+                "displayName": "Email",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Customer message",
+                "displayName": "Customer message",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true,
+                "removed": false
+              },
+              {
+                "id": "Lead",
+                "displayName": "Lead",
+                "required": false,
+                "defaultMatch": false,
+                "display": true,
+                "type": "string",
+                "canBeUsedToMatch": true
+              }
+            ],
+            "attemptToConvertTypes": false,
+            "convertFieldsToString": false
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleSheets",
+        "typeVersion": 4.7,
+        "position": [
+          528,
+          40
+        ],
+        "id": "f3782626-f487-4ac0-a58f-ba4d539bb949",
+        "name": "Lead Sheet",
+        "alwaysOutputData": false,
+        "credentials": {
+          "googleSheetsOAuth2Api": {
+            "id": "P2WoYlnHbPhHpLg0",
+            "name": "Google Sheets account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsonSchemaExample": "{\n  \"reply\": \"Your message to the customer\",\n  \"needs_human\": false,\n  \"is_lead\":true\n}"
+        },
+        "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+        "typeVersion": 1.3,
+        "position": [
+          -984,
+          376
+        ],
+        "id": "7c79387b-a9b7-4b04-a704-58a93fb99f16",
+        "name": "Structured Output Parser"
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.outputParserAutofixing",
+        "typeVersion": 1,
+        "position": [
+          -1088,
+          168
+        ],
+        "id": "633d8e7f-e4a8-41b9-b28b-7c639366bcaa",
+        "name": "Auto-fixing Output Parser"
+      },
+      {
+        "parameters": {
+          "jsCode": "return [\n  {\n    json: {\n      text: $('AI Agent').first().json.output.reply\n    }\n  }\n];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          976,
+          184
+        ],
+        "id": "7ee1e535-b6f5-4a1f-97ec-6b8c8c0b2aa5",
+        "name": "Code in JavaScript2"
+      },
+      {
+        "parameters": {
+          "jsCode": "return [\n  {\n    json: {\n      text: $('AI Agent').first().json.output.reply\n    }\n  }\n];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          752,
+          -200
+        ],
+        "id": "c564a770-85d8-4c3a-bdc8-9a37f545d702",
+        "name": "Code in JavaScript"
+      },
+      {
+        "parameters": {
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.memoryManager",
+        "typeVersion": 1.1,
+        "position": [
+          -720,
+          40
+        ],
+        "id": "69da4492-ef8e-4940-a66a-7ed32b937a5b",
+        "name": "Chat Memory Manager"
+      },
+      {
+        "parameters": {
+          "public": true,
+          "mode": "webhook",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+        "typeVersion": 1.4,
+        "position": [
+          -1632,
+          -56
+        ],
+        "id": "fcae1d06-60e1-4c25-be3a-c30f1ad76fba",
+        "name": "When chat message received",
+        "webhookId": "a286bbf8-3db0-49e9-8987-25bf1c2d3ffd"
+      },
+      {
+        "parameters": {
+          "sendTo": "testnnworkflow13@gmail.com",
+          "subject": "There is a New Lead",
+          "message": "=Please Check This New lead ,\nCustomer Name: {{ $json.Name }},\nCustomer Email: {{ $json.Email }}",
+          "options": {
+            "appendAttribution": false
+          }
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          752,
+          40
+        ],
+        "id": "25708921-c80f-47ec-9674-845d6cd6dc66",
+        "name": "Send a message",
+        "webhookId": "c74f97cb-ceb7-47c9-ab13-502a8daf7752",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "SN79AzLmxYdb0jSR",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "sendTo": "testnnworkflow13@gmail.com",
+          "subject": "Bep Bep Need you to talk !!!",
+          "message": "=There is a customer wanted to talk with you!!!\nCustomer Name: {{ $json.Name }},\nCustomer Email: {{ $json.Email }}",
+          "options": {
+            "appendAttribution": false
+          }
+        },
+        "type": "n8n-nodes-base.gmail",
+        "typeVersion": 2.1,
+        "position": [
+          528,
+          -272
+        ],
+        "id": "cc5fbec6-6d67-49ee-9b58-2660cfd1bc7d",
+        "name": "Send a message1",
+        "webhookId": "a2787124-e79b-41c6-a06b-0957b334414a",
+        "credentials": {
+          "gmailOAuth2": {
+            "id": "SN79AzLmxYdb0jSR",
+            "name": "Gmail account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "model": "moonshotai/kimi-k2-instruct",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+        "typeVersion": 1,
+        "position": [
+          -1408,
+          376
+        ],
+        "id": "57c326d5-42ca-4bd9-8db2-8a2baa631be8",
+        "name": "Groq Chat Model",
+        "credentials": {
+          "groqApi": {
+            "id": "5h1EDdb5qUKmhLT3",
+            "name": "Groq account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "contextWindowLength": 100
+        },
+        "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+        "typeVersion": 1.3,
+        "position": [
+          -1344,
+          168
+        ],
+        "id": "90c65047-b2a0-48c3-9b6f-c20b483dd332",
+        "name": "Simple Memory"
+      }
+    ],
+    "connections": {
+      "AI Agent": {
+        "main": [
+          [
+            {
+              "node": "customer chat history",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "Chat Memory Manager",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Lead?": {
+        "main": [
+          [
+            {
+              "node": "If all field Collected1",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Code in JavaScript2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Srape Name and Email1": {
+        "main": [
+          [
+            {
+              "node": "Need human?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Need human?": {
+        "main": [
+          [
+            {
+              "node": "If all field Collected",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Lead?",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If all field Collected": {
+        "main": [
+          [
+            {
+              "node": "Escalated",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Code in JavaScript",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "If all field Collected1": {
+        "main": [
+          [
+            {
+              "node": "Lead Sheet",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Code in JavaScript2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "FAQ's": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Escalated": {
+        "main": [
+          [
+            {
+              "node": "Send a message1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Lead Sheet": {
+        "main": [
+          [
+            {
+              "node": "Send a message",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Structured Output Parser": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "Auto-fixing Output Parser",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Auto-fixing Output Parser": {
+        "ai_outputParser": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_outputParser",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Chat Memory Manager": {
+        "main": [
+          [
+            {
+              "node": "Srape Name and Email1",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "When chat message received": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send a message": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript2",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Send a message1": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Groq Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            },
+            {
+              "node": "Auto-fixing Output Parser",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Simple Memory": {
+        "ai_memory": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_memory",
+              "index": 0
+            },
+            {
+              "node": "Chat Memory Manager",
+              "type": "ai_memory",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "system migration",
+    "name": null,
+    "description": null,
+    "autosaved": false
+  },
+  "tags": []
+}
