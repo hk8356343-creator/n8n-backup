@@ -1,0 +1,307 @@
+{
+  "updatedAt": "2025-12-28T17:38:31.930Z",
+  "createdAt": "2025-12-28T17:38:31.930Z",
+  "id": "WeVVGlwuuYxjFr2m",
+  "name": "E-Commerce Customer Support Routing",
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "triggerTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        }
+      },
+      "id": "f65f54d1-6f8f-4b43-b802-cedcacf3a82b",
+      "name": "Cron",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [
+        -864,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "46f799c4-1885-476f-8007-1f7b8c2acb04",
+      "name": "Get Unprocessed Tickets",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        -608,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "caeff4f8-03eb-484e-b86e-fff7d97dd5fd",
+      "name": "Loop Over Tickets",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        -320,
+        16
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.status }}",
+              "operation": "equals",
+              "value2": "new"
+            }
+          ]
+        }
+      },
+      "id": "9e53c030-9376-48f7-a378-5e82d4ff606d",
+      "name": "Filter New Tickets",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4",
+        "options": {},
+        "requestOptions": {}
+      },
+      "id": "b2c62285-2773-42f4-a3a3-52ff2425e61f",
+      "name": "Classify Issue Type",
+      "type": "n8n-nodes-base.openAi",
+      "typeVersion": 1,
+      "position": [
+        144,
+        -96
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": null,
+          "name": "openai_api"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extract issue type and priority from classification\nconst classification = $json.choices[0].message.content;\nconst issueTypes = ['billing', 'shipping', 'returns', 'product_quality', 'account', 'technical', 'general_inquiry'];\nconst priorities = ['critical', 'high', 'medium', 'low'];\n\nlet detectedIssue = 'general_inquiry';\nlet detectedPriority = 'medium';\n\nfor (const type of issueTypes) {\n  if (classification.toLowerCase().includes(type)) {\n    detectedIssue = type;\n    break;\n  }\n}\n\nfor (const priority of priorities) {\n  if (classification.toLowerCase().includes(priority)) {\n    detectedPriority = priority;\n    break;\n  }\n}\n\nreturn {\n  ...item,\n  issue_type: detectedIssue,\n  priority: detectedPriority,\n  sentiment: classification.toLowerCase().includes('angry') || classification.toLowerCase().includes('frustrated') ? 'negative' : 'neutral'\n};"
+      },
+      "id": "81d3e9e1-90f4-4799-b604-dcb7a0451d4c",
+      "name": "Parse Classification",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.priority }}",
+              "operation": "equals",
+              "value2": "critical"
+            },
+            {
+              "value1": "={{ $json.priority }}",
+              "operation": "equals",
+              "value2": "high"
+            }
+          ]
+        }
+      },
+      "id": "8c26d6ba-5c41-49e4-a89c-962909d408da",
+      "name": "Is High Priority?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        320,
+        -96
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Route to appropriate department\nconst routing = {\n  'billing': 'billing-department@support.company.com',\n  'shipping': 'shipping-department@support.company.com',\n  'returns': 'returns-department@support.company.com',\n  'product_quality': 'quality-team@support.company.com',\n  'account': 'account-support@support.company.com',\n  'technical': 'technical-support@support.company.com',\n  'general_inquiry': 'general-support@support.company.com'\n};\n\nconst escalation = {\n  'critical': true,\n  'high': false,\n  'medium': false,\n  'low': false\n};\n\nreturn {\n  ...item,\n  assigned_to: routing[$json.issue_type] || 'general-support@support.company.com',\n  needs_escalation: escalation[$json.priority],\n  response_time_minutes: $json.priority === 'critical' ? 15 : $json.priority === 'high' ? 60 : $json.priority === 'medium' ? 240 : 1440,\n  auto_response: $json.priority === 'critical' ? 'Critical issue detected. Our team will contact you within 15 minutes.' : 'Thank you for contacting support. We will respond shortly.'\n};"
+      },
+      "id": "3f5a81db-c1bf-4205-9972-30f733cce6cd",
+      "name": "Route Ticket",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "options": {}
+      },
+      "id": "ad170de4-f4f5-4c78-b0f4-d20d947dde58",
+      "name": "Send to Slack (High Priority)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        544,
+        -160
+      ]
+    },
+    {
+      "parameters": {
+        "toEmail": "={{ $json.assigned_to }}",
+        "subject": "New Support Ticket - {{ $json.issue_type | title }} ({{ $json.priority | upper }})",
+        "options": {}
+      },
+      "id": "635b21b3-5032-4c35-ab38-5e80ae1d0c3a",
+      "name": "Send Email to Department",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 1,
+      "position": [
+        544,
+        0
+      ],
+      "credentials": {
+        "smtp": {
+          "id": null,
+          "name": "email_credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SUPPORT_TICKET_API_URL }}/tickets/{{ $json.ticket_id }}/update",
+        "options": {}
+      },
+      "id": "2eafb404-dc54-467f-a571-f056f3827962",
+      "name": "Update Ticket Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        544,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.CUSTOMER_NOTIFICATION_API }}/send",
+        "options": {}
+      },
+      "id": "56c56f36-ff40-4051-a879-843306d20c4e",
+      "name": "Send Auto Response to Customer",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        752,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "e487434d-76d3-45b6-9fbc-f6b0fc08e1a1",
+      "name": "Log Event to Analytics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        752,
+        160
+      ]
+    }
+  ],
+  "connections": {
+    "Cron": {
+      "main": [
+        [
+          {
+            "node": "Get Unprocessed Tickets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Unprocessed Tickets": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Tickets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is High Priority?": {
+      "main": [
+        [
+          {
+            "node": "Send to Slack (High Priority)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Ticket": {
+      "main": [
+        [
+          {
+            "node": "Update Ticket Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Ticket Status": {
+      "main": [
+        [
+          {
+            "node": "Log Event to Analytics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "26671db9-7177-4373-b2b1-37946a65639d",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2025-12-28T17:38:31.933Z",
+      "createdAt": "2025-12-28T17:38:31.933Z",
+      "role": "workflow:owner",
+      "workflowId": "WeVVGlwuuYxjFr2m",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
