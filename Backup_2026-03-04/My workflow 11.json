@@ -1,0 +1,177 @@
+{
+  "updatedAt": "2026-02-07T16:38:54.000Z",
+  "createdAt": "2026-02-07T16:29:05.969Z",
+  "id": "98ONRX46xy2Cf5H3",
+  "name": "My workflow 11",
+  "active": false,
+  "isArchived": true,
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -576,
+        -48
+      ],
+      "id": "35524388-a30d-4094-9c9e-3c7789105e37",
+      "name": "When chat message received",
+      "webhookId": "d7ef68ff-9202-4e5b-b0ad-015124e482b8"
+    },
+    {
+      "parameters": {
+        "jsCode": "const messages = $input.first().json.messages || [];\nconst memory = $input.first().json.memory || {};\n\nif (memory.name && memory.email) {\n  return { name: memory.name, email: memory.email };\n}\n\nlet foundName = memory.name || null;\nlet foundEmail = memory.email || null;\n\nfor (let i = 0; i < messages.length; i++) {\n  const text = (messages[i].human || \"\").trim();\n  if (!text) continue;\n  \n  // Extract email\n  if (!foundEmail) {\n    const emailMatch = text.match(/([a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})/);\n    if (emailMatch) foundEmail = emailMatch[1];\n  }\n  \n  // Extract name\n  if (!foundName) {\n    // Remove email first\n    let cleanText = text.replace(/[a-zA-Z0-9._+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}/g, '');\n    \n    // Remove common prefixes\n    cleanText = cleanText.replace(/^(my name is|i'm|i am|this is|name is|name:)\\s*/i, '');\n    \n    // Remove \"and\", \"And\", commas, and extra spaces\n    cleanText = cleanText\n      .replace(/\\s+(and|And)\\s*$/i, '')  // Remove trailing \"and\"\n      .replace(/\\s+(and|And)\\s+/gi, ' ') // Remove \"and\" in middle\n      .replace(/[,;]\\s*/g, ' ')          // Remove commas/semicolons\n      .replace(/\\s+/g, ' ')              // Normalize spaces\n      .trim();\n    \n    // Extract name (letters and spaces only)\n    const nameMatch = cleanText.match(/^([a-zA-Z]+(?:\\s+[a-zA-Z]+)*)/);\n    if (nameMatch && nameMatch[1]) {\n      const name = nameMatch[1].trim();\n      const words = name.split(/\\s+/);\n      \n      // Accept names with 1-4 words\n      if (words.length >= 1 && words.length <= 4) {\n        foundName = name;\n      }\n    }\n  }\n  \n  if (foundName && foundEmail) break;\n}\n\nreturn { \n  name: foundName || null, \n  email: foundEmail || null \n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        -48
+      ],
+      "id": "8b4b7a6f-1344-4a38-9566-0fe6852dcd81",
+      "name": "Srape Name and Email1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryManager",
+      "typeVersion": 1.1,
+      "position": [
+        192,
+        -48
+      ],
+      "id": "686fc0a7-4ad4-4383-be13-01498a20a875",
+      "name": "Chat Memory Manager"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        -368,
+        -48
+      ],
+      "id": "d09c163f-1d99-412d-8df0-4143a1fd4ec9",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -512,
+        160
+      ],
+      "id": "de008f9a-c690-4ea7-8603-9ee235ab7a49",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "Ef2UZYWgupCwAo5e",
+          "name": "Google Gemini(PaLM) Api account 4"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -368,
+        160
+      ],
+      "id": "63fbf93a-ca85-4206-8f07-74b4368a8d5a",
+      "name": "Simple Memory1"
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Memory Manager": {
+      "main": [
+        [
+          {
+            "node": "Srape Name and Email1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Chat Memory Manager",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory1": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "Chat Memory Manager",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "7773669e-50ff-463f-8d76-51f141233450",
+  "activeVersionId": null,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-02-07T16:29:05.976Z",
+      "createdAt": "2026-02-07T16:29:05.976Z",
+      "role": "workflow:owner",
+      "workflowId": "98ONRX46xy2Cf5H3",
+      "projectId": "aqCUDfvAqAv6TlIv"
+    }
+  ],
+  "activeVersion": null,
+  "tags": []
+}
